@@ -1,0 +1,380 @@
+{% load i18n %}
+
+<div class="employee-profile">
+    <div class="employee-profile__header">
+        <div class="employee-profile__main-info">
+            <div class="employee-profile__avatar">
+                <svg fill="white" width="100" height="100" viewBox="0 0 60 60">
+                    <path d="M60,30.017c0-16.542-13.458-30-30-30s-30,13.458-30,30c0,6.142,1.858,11.857,5.038,16.618l-0.002,0.018 c0.005,0,0.01,0.001,0.014,0.001c2.338,3.495,5.393,6.469,8.949,8.721c9.524,6.149,22.473,6.138,32,0 c2.599-1.646,4.928-3.677,6.907-6.017c0.001,0.001,0.002,0.002,0.002,0.003c0.023-0.027,0.045-0.057,0.068-0.084 c0.177-0.211,0.349-0.427,0.521-0.644c0.168-0.209,0.334-0.418,0.497-0.632c0.048-0.063,0.093-0.128,0.14-0.192 c0.21-0.281,0.422-0.56,0.621-0.851l0.207-0.303l-0.002-0.021C58.142,41.874,60,36.159,60,30.017z"/>
+                </svg>
+            </div>
+            <div class="employee-profile__name-block">
+                <h2 class="employee-profile__name">{{ employee.get_full_name }}</h2>
+                <p class="employee-profile__workplace">
+                    {% trans "Місце роботи" %}: {{ employee.workplace|default:"Не вказано" }}
+                </p>
+                <div class="employee-profile__badges">
+                    {% if employee.is_student %}
+                    <span class="employee-profile__badge employee-profile__badge--student">
+                        {% trans "Студент" %}
+                    </span>
+                    {% endif %}
+
+                    {% if employee.working_status == "Pracujący" %}
+                    <span class="employee-profile__badge employee-profile__badge--works">
+                        {% trans "Працевлаштований" %}
+                    </span>
+                    {% elif employee.working_status == "Zwolniony" %}
+                    <span class="employee-profile__badge employee-profile__badge--fired">
+                        {% trans "Звільнений" %}
+                    </span>
+                    {% elif employee.working_status == "Umowa o prace" %}
+                    <span class="employee-profile__badge employee-profile__badge--contract">
+                        {% trans "Трудовий договір" %}
+                    </span>
+                    {% elif employee.working_status == "Zmiana stanowiska" %}
+                    <span class="employee-profile__badge employee-profile__badge--shift">
+                        {% trans "Зміна посади" %}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="employee-profile__content">
+        <!-- Personal Information -->
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Особиста інформація" %}
+            </h3>
+            <div class="employee-profile__grid">
+                <div class="employee-profile__field">
+                    <span class="employee-profile__field-label">{% trans "Ім'я" %}</span>
+                    <span class="employee-profile__field-value">{{ employee.first_name|default:"-" }}</span>
+                </div>
+                <div class="employee-profile__field">
+                    <span class="employee-profile__field-label">{% trans "Прізвище" %}</span>
+                    <span class="employee-profile__field-value">{{ employee.last_name|default:"-" }}</span>
+                </div>
+                <div class="employee-profile__field">
+                    <span class="employee-profile__field-label">{% trans "Вік" %}</span>
+                    <span class="employee-profile__field-value">
+                        {% if employee.age %}{{ employee.age }} {% trans "років" %}{% else %}-{% endif %}
+                    </span>
+                </div>
+                <div class="employee-profile__field">
+                    <span class="employee-profile__field-label">PESEL</span>
+                    <span class="employee-profile__field-value">{{ employee.pesel|default:"-" }}</span>
+                </div>
+                <div class="employee-profile__field">
+                    <span class="employee-profile__field-label">PESEL URK</span>
+                    <span class="employee-profile__field-value">
+                        {% if employee.pesel_urk %}{% trans "Так" %}{% else %}{% trans "Ні" %}{% endif %}
+                    </span>
+                </div>
+                <div class="employee-profile__field">
+                    <span class="employee-profile__field-label">PIT-2</span>
+                    <span class="employee-profile__field-value">
+                        {% if employee.pit_2 %}{% trans "Так" %}{% else %}{% trans "Ні" %}{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Status -->
+        {% if employee.is_student %}
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                </svg>
+                {% trans "Студент" %}
+            </h3>
+            <div class="employee-profile__items">
+                <div class="employee-profile__item">
+                    <div class="employee-profile__item-grid">
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Дійсний до" %}</span>
+                            <span class="employee-profile__field-value">
+                                {{ employee.student_end_date|date:"d-m-Y"|default:"-" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Employment Periods -->
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Періоди зайнятості" %}
+            </h3>
+            <div class="employee-profile__items">
+                {% for period in employee.employment_period.all %}
+                <div class="employee-profile__item">
+                    <div class="employee-profile__item-grid">
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Дата початку" %}</span>
+                            <span class="employee-profile__field-value">{{ period.start_date|date:"d-m-Y"|default:"-" }}</span>
+                        </div>
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Дата закінчення" %}</span>
+                            <span class="employee-profile__field-value">{{ period.end_date|date:"d-m-Y"|default:"-" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="employee-profile__empty">{% trans "Періоди зайнятості відсутні" %}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Документи" %}
+            </h3>
+            <div class="employee-profile__items">
+                {% for doc in employee.documents.all %}
+                <div class="employee-profile__item">
+                    <div class="employee-profile__item-header">
+                        <h4 class="employee-profile__item-title">{{ doc.doc_type|default:"Документ" }}</h4>
+                        {% if doc.valid_until %}
+                        <span class="employee-profile__item-status {% if doc.valid_until < today %}employee-profile__item-status--expired{% else %}employee-profile__item-status--valid{% endif %}">
+                            {% if doc.valid_until < today %}{% trans "Прострочено" %}{% else %}{% trans "Дійсний" %}{% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="employee-profile__item-grid">
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Номер" %}</span>
+                            <span class="employee-profile__field-value">{{ doc.number|default:"-" }}</span>
+                        </div>
+                        {% if doc.valid_until %}
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Дійсний до" %}</span>
+                            <span class="employee-profile__field-value">{{ doc.valid_until|date:"d-m-Y" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="employee-profile__empty">{% trans "Документи відсутні" %}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Work Permits -->
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Дозволи на роботу" %}
+            </h3>
+            <div class="employee-profile__items">
+                {% for permit in employee.work_permits.all %}
+                <div class="employee-profile__item">
+                    <div class="employee-profile__item-header">
+                        <h4 class="employee-profile__item-title">{% trans "Дозвіл на роботу" %}</h4>
+                        {% if permit.end_date %}
+                        <span class="employee-profile__item-status {% if permit.end_date < today %}employee-profile__item-status--expired{% else %}employee-profile__item-status--valid{% endif %}">
+                            {% if permit.end_date < today %}{% trans "Прострочено" %}{% else %}{% trans "Дійсний" %}{% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="employee-profile__item-grid">
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Тип дозволу" %}</span>
+                            <span class="employee-profile__field-value">{{ permit.doc_type|default:"-" }}</span>
+                        </div>
+                        {% if permit.end_date %}
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Дата закінчення" %}</span>
+                            <span class="employee-profile__field-value">{{ permit.end_date|date:"d-m-Y" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="employee-profile__empty">{% trans "Дозволи на роботу відсутні" %}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Card Submissions -->
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                    <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Подання карток" %}
+            </h3>
+            <div class="employee-profile__items">
+                {% for card in employee.card_submissions.all %}
+                <div class="employee-profile__item">
+                    <div class="employee-profile__item-grid">
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Тип заявки" %}</span>
+                            <span class="employee-profile__field-value">{{ card.doc_type|default:"-" }}</span>
+                        </div>
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Дата подання" %}</span>
+                            <span class="employee-profile__field-value">{{ card.start_date|date:"d-m-Y"|default:"-" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="employee-profile__empty">{% trans "Подання карток відсутні" %}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Contracts -->
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Контракти" %}
+            </h3>
+            <div class="employee-profile__items">
+                {% for contract in employee.contracts.all %}
+                <div class="employee-profile__item">
+                    <div class="employee-profile__item-grid">
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Тип контракту" %}</span>
+                            <span class="employee-profile__field-value">
+                                {% if contract.contract_type == "o_prace" %}
+                                    {% trans "Трудовий договір" %}
+                                {% elif contract.contract_type == "zlecenia" %}
+                                    {% trans "Мандатний контракт" %}
+                                {% else %}
+                                    {{ contract.contract_type }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="employee-profile__empty">{% trans "Контракти відсутні" %}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sanepids -->
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Санітарні книжки" %}
+            </h3>
+            <div class="employee-profile__items">
+                {% for sanepid in employee.sanepids.all %}
+                <div class="employee-profile__item">
+                    <div class="employee-profile__item-header">
+                        <h4 class="employee-profile__item-title">{% trans "Санітарна книжка" %}</h4>
+                        {% if sanepid.end_date %}
+                        <span class="employee-profile__item-status {% if sanepid.end_date < today %}employee-profile__item-status--expired{% else %}employee-profile__item-status--valid{% endif %}">
+                            {% if sanepid.end_date < today %}{% trans "Прострочено" %}{% else %}{% trans "Дійсний" %}{% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="employee-profile__item-grid">
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Статус" %}</span>
+                            <span class="employee-profile__field-value">{{ sanepid.status|default:"-" }}</span>
+                        </div>
+                        {% if sanepid.end_date %}
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Дата закінчення" %}</span>
+                            <span class="employee-profile__field-value">{{ sanepid.end_date|date:"d-m-Y" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="employee-profile__empty">{% trans "Санітарні книжки відсутні" %}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Contacts -->
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                </svg>
+                {% trans "Контакти" %}
+            </h3>
+            <div class="employee-profile__items">
+                {% for contact in employee.contacts.all %}
+                <div class="employee-profile__item">
+                    <div class="employee-profile__item-grid">
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Тип контакту" %}</span>
+                            <span class="employee-profile__field-value">{{ contact.get_contact_type_display|default:"-" }}</span>
+                        </div>
+                        <div class="employee-profile__field">
+                            <span class="employee-profile__field-label">{% trans "Значення" %}</span>
+                            {% if contact.contact_type == "email" %}
+                            <a href="mailto:{{ contact.value }}" class="employee-profile__field-value employee-profile__field-value--link">{{ contact.value }}</a>
+                            {% elif contact.contact_type == "phone" %}
+                            <a href="tel:{{ contact.value }}" class="employee-profile__field-value employee-profile__field-value--link">{{ contact.value }}</a>
+                            {% else %}
+                            <span class="employee-profile__field-value">{{ contact.value|default:"-" }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="employee-profile__empty">{% trans "Контакти відсутні" %}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Additional Information -->
+        {% if employee.additional_information %}
+        <div class="employee-profile__section">
+            <h3 class="employee-profile__section-title">
+                <svg class="employee-profile__section-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Додаткова інформація" %}
+            </h3>
+            <div class="employee-profile__additional-info">
+                {{ employee.additional_information }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="employee-profile__actions">
+        <button class="employee-profile__btn employee-profile__btn--edit" onclick="editEmployee({{ employee.id }})">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M12.146 1.146a.5.5 0 01.708 0l2 2a.5.5 0 010 .708l-9 9a.5.5 0 01-.168.11l-4 1.5a.5.5 0 01-.65-.65l1.5-4a.5.5 0 01.11-.168l9-9z"/>
+            </svg>
+            {% trans "Редагувати" %}
+        </button>
+        <button class="employee-profile__btn employee-profile__btn--delete" onclick="deleteEmployee({{ employee.id }})">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z"/>
+                <path fill-rule="evenodd" d="M14.5 3a1 1 0 01-1 1H13v9a2 2 0 01-2 2H5a2 2 0 01-2-2V4h-.5a1 1 0 01-1-1V2a1 1 0 011-1H6a1 1 0 011-1h2a1 1 0 011 1h3.5a1 1 0 011 1v1z"/>
+            </svg>
+            {% trans "Видалити" %}
+        </button>
+    </div>
+</div>

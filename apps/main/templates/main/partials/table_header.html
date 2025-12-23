@@ -1,0 +1,143 @@
+{% load i18n %}
+
+<div class="employees-table__header employees-table__header--name">
+    <div class="employees-table__header--left">
+        {% trans "Прізвище Імʼя" %}
+        <div class="sort-buttons">
+            {% if ordering_info.last_name.active and ordering_info.last_name.direction == 'asc' %}
+                <a href="?{{ params_without_ordering }}&ordering=-last_name"
+                   hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-last_name"
+                   hx-target="#employees-table-body"
+                   hx-swap="outerHTML"
+                   class="sort-btn sort-btn--active">↑</a>
+            {% else %}
+                <a href="?{{ params_without_ordering }}&ordering=last_name"
+                   hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=last_name"
+                   hx-target="#employees-table-body"
+                   hx-swap="outerHTML"
+                   class="sort-btn">↑</a>
+            {% endif %}
+
+            {% if ordering_info.last_name.active %}
+                <a href="?{{ params_without_ordering }}"
+                   hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}"
+                   hx-target="#employees-table-body"
+                   hx-swap="outerHTML"
+                   class="sort-btn sort-btn--clear">✕</a>
+            {% else %}
+                <span class="sort-btn sort-btn--disabled">✕</span>
+            {% endif %}
+
+            {% if ordering_info.last_name.active and ordering_info.last_name.direction == 'desc' %}
+                <a href="?{{ params_without_ordering }}&ordering=last_name"
+                   hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=last_name"
+                   hx-target="#employees-table-body"
+                   hx-swap="outerHTML"
+                   class="sort-btn sort-btn--active">↓</a>
+            {% else %}
+                <a href="?{{ params_without_ordering }}&ordering=-last_name"
+                   hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-last_name"
+                   hx-target="#employees-table-body"
+                   hx-swap="outerHTML"
+                   class="sort-btn">↓</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="employees-table__header">
+    {% trans "Початок роботи, Від" %}
+    <div class="sort-buttons">
+        {% if ordering_info.start_date.active and ordering_info.start_date.direction == 'asc' %}
+            <a href="?{{ params_without_ordering }}&ordering=-start_date"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-start_date"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn sort-btn--active">↑</a>
+        {% else %}
+            <a href="?{{ params_without_ordering }}&ordering=start_date"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=start_date"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn">↑</a>
+        {% endif %}
+
+        {% if ordering_info.start_date.active %}
+            <a href="?{{ params_without_ordering }}"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn sort-btn--clear">✕</a>
+        {% else %}
+                <span class="sort-btn sort-btn--disabled">✕</span>
+        {% endif %}
+
+        {% if ordering_info.start_date.active and ordering_info.start_date.direction == 'desc' %}
+            <a href="?{{ params_without_ordering }}&ordering=start_date"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=start_date"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn sort-btn--active">↓</a>
+        {% else %}
+            <a href="?{{ params_without_ordering }}&ordering=-start_date"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-start_date"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn">↓</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="employees-table__header">
+    {% trans "Початок роботи, До" %}
+    <div class="sort-buttons">
+        {% if ordering_info.end_date.active and ordering_info.end_date.direction == 'asc' %}
+            <a href="?{{ params_without_ordering }}&ordering=-end_date"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-end_date"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn sort-btn--active">↑</a>
+        {% else %}
+            <a href="?{{ params_without_ordering }}&ordering=end_date"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=end_date"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn">↑</a>
+        {% endif %}
+
+        {% if ordering_info.end_date.active %}
+            <a href="?{{ params_without_ordering }}"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn sort-btn--clear">✕</a>
+        {% else %}
+                <span class="sort-btn sort-btn--disabled">✕</span>
+        {% endif %}
+
+        {% if ordering_info.end_date.active and ordering_info.end_date.direction == 'desc' %}
+            <a href="?{{ params_without_ordering }}&ordering=end_date"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=end_date"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn sort-btn--active">↓</a>
+        {% else %}
+            <a href="?{{ params_without_ordering }}&ordering=-end_date"
+               hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-end_date"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="sort-btn">↓</a>
+        {% endif %}
+
+
+    </div>
+</div>
+
+<div class="employees-table__header">{% trans "Підстава перебування" %}</div>
+<div class="employees-table__header">{% trans "Термін документу" %}</div>
+<div class="employees-table__header">{% trans "Дозвіл на роботу" %}</div>
+<div class="employees-table__header">{% trans "До" %}</div>
+<div class="employees-table__header">{% trans "Номер PESEL" %}</div>
+<div class="employees-table__header">{% trans "Подача на карту" %}</div>
+<div class="employees-table__header">{% trans "Дата" %}</div>
+<div class="employees-table__header employees-table__header--actions"></div>

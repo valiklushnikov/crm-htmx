@@ -1,0 +1,108 @@
+{% extends 'users/base.html' %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Логін" %}{% endblock %}
+{% block content %}
+<h1 class="auth-title">{% trans "Вхід в систему" %}</h1>
+<p class="subtitle">{% trans "Використовуйте ваші облікові дані" %}</p>
+
+<div id="message"></div>
+
+<form id="loginForm">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label for="email">{% trans "Email" %} *</label>
+        <input type="email" id="email" name="email" required>
+    </div>
+
+    <div class="form-group">
+        <label for="password">{% trans "Пароль" %}</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+    </div>
+
+    <button class="btn-auth" type="submit" id="submitBtn">{% trans "Увійти" %}</button>
+    <div class="loading" id="loading">{% trans "Вхід..." %}</div>
+</form>
+
+<div class="register-link">
+    {% trans "Немає акаунта?" %} <a style="display: inline-block;" href="{% url 'accounts:register_page' %}">{% trans "Зареєструватися" %}</a>
+    {% get_current_language as LANGUAGE_CODE %}
+    <div style="display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 10px;">
+        <span class="language-flag" style="font-size: 24px;">
+            {% if LANGUAGE_CODE == 'uk' %}🇺🇦{% else %}🇵🇱{% endif %}
+        </span>
+        <form class="language-switcher__form auth-form" action="{% url 'set_language' %}" method="post">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.path }}">
+            <select name="language" class="language-switcher__select" onchange="this.form.submit()">
+                <option value="uk" {% if LANGUAGE_CODE == 'uk' %}selected{% endif %}>{% trans "Українська" %}</option>
+                <option value="pl" {% if LANGUAGE_CODE == 'pl' %}selected{% endif %}>{% trans "Polski" %}</option>
+            </select>
+        </form>
+    </div>
+</div>
+<script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const messageDiv = document.getElementById('message');
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            messageDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/auth/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.innerHTML = `<div class="success">${data.message}</div>`;
+
+                    setTimeout(() => {
+                        window.location.href = "{% url 'main:dashboard' %}";
+                    }, 500);
+                } else {
+                    // Показуємо помилку
+                    messageDiv.innerHTML = `<div class="error">${data.error || '{% filter escapejs %}{% trans "Помилка входу" %}{% endfilter %}'}</div>`;
+                    submitBtn.disabled = false;
+                    loading.style.display = 'none';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="error">{% filter escapejs %}{% trans "Сталася помилка. Спробуйте знову." %}{% endfilter %}</div>';
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% load i18n %}
+<div class="modal modal--active" id="employeeModal">
+    <div class="modal__overlay" onclick="closeEmployeeModal()"></div>
+    <div class="modal__content modal__content--large">
+        <div class="modal__header">
+            <h2 class="modal__title">
+                {% if mode == 'create' %}
+                    {% trans "Додати працівника" %}
+                {% else %}
+                    {% trans "Оновити дані працівника" %}
+                {% endif %}
+            </h2>
+            <button class="modal__close" onclick="closeEmployeeModal()" aria-label="Close modal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <form class="modal__form"
+              hx-post="{% url 'main:employee_save' %}"
+              hx-target="#employees-table-body"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="{{ mode }}">
+            {% if employee_id %}
+                <input type="hidden" name="employee_id" value="{{ employee_id }}">
+            {% endif %}
+
+            {% include 'main/partials/employee_form_fields.html' %}
+
+            <div class="modal__actions">
+                <button type="button"
+                        class="modal__btn modal__btn--cancel"
+                        onclick="closeEmployeeModal()">
+                    {% trans "Скасувати" %}
+                </button>
+                <button type="submit" class="modal__btn modal__btn--save">
+                    {% if mode == 'create' %}
+                        {% trans "Зберегти" %}
+                    {% else %}
+                        {% trans "Оновити" %}
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function closeEmployeeModal() {
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) {
+        modalContainer.innerHTML = '';
+    }
+    // Unlock employee if editing
+    {% if employee_id %}
+    fetch("{% url 'main:unlock_employee' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ employee_id: {{ employee_id }} })
+    });
+    {% endif %}
+}
+</script>

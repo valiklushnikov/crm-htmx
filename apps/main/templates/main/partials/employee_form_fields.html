@@ -1,0 +1,209 @@
+{% load i18n %}
+
+<h3 class="form-section-title">{% trans "Основна інформація" %}</h3>
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="firstName">{% trans "Ім'я" %} <span class="required">*</span></label>
+        {{ form.first_name }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="lastName">{% trans "Прізвище" %} <span class="required">*</span></label>
+        {{ form.last_name }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="age">{% trans "Вік" %}</label>
+        {{ form.age }}
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="pesel">Pesel</label>
+        {{ form.pesel }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="peselUrk">Pesel Ukr</label>
+        {{ form.pesel_urk }}
+    </div>
+</div>
+
+<!-- Student -->
+<h3 class="form-section-title">{% trans "Студент" %}</h3>
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="isStudent">{% trans "Статус" %}</label>
+        {{ form.is_student }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="studentEndDate">{% trans "Дійсний до" %}</label>
+        {{ form.student_end_date }}
+    </div>
+</div>
+
+<!-- Місце роботи -->
+<h3 class="form-section-title">{% trans "Місце роботи" %}</h3>
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="workplace">{% trans "Місце роботи" %}</label>
+        {{ form.workplace }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="pit2">Pit-2</label>
+        {{ form.pit_2 }}
+    </div>
+    {% if mode == 'edit' %}
+    <div class="form-group">
+        <label class="form-group__label" for="workingStatus">{% trans "Статус роботи" %}</label>
+        {{ form.working_status }}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Період роботи -->
+<h3 class="form-section-title">{% trans "Період роботи" %}</h3>
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="employmentStartDate">{% trans "Дата початку" %}</label>
+        {{ form.employment_start_date }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="employmentEndDate">{% trans "Дата закінчення" %}</label>
+        {{ form.employment_end_date }}
+    </div>
+</div>
+
+<!-- Документи -->
+<h3 class="form-section-title">{% trans "Документи" %}</h3>
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="docType">{% trans "Тип документа" %}</label>
+        {{ form.doc_type }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="docNumber">{% trans "Номер документа" %}</label>
+        {{ form.doc_number }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="docValidUntil">{% trans "Дійсний до" %}</label>
+        {{ form.doc_valid_until }}
+    </div>
+</div>
+
+<!-- Дозвіл на роботу -->
+<h3 class="form-section-title">{% trans "Дозвіл на роботу" %}</h3>
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="workPermitType">{% trans "Тип дозволу" %}</label>
+        {{ form.work_permit_type }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="workPermitEndDate">{% trans "Дійсний до" %}</label>
+        {{ form.work_permit_end_date }}
+    </div>
+</div>
+
+<!-- Заявка на картку -->
+<h3 class="form-section-title">{% trans "Заявка на картку" %}</h3>
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="cardSubmissionType">{% trans "Тип заявки" %}</label>
+        {{ form.card_submission_type }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="cardSubmissionStartDate">{% trans "Дата подачі" %}</label>
+        {{ form.card_submission_start_date }}
+    </div>
+</div>
+
+<!-- Контракт -->
+<h3 class="form-section-title">{% trans "Контракт" %}</h3>
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="contractType">{% trans "Тип контракту" %}</label>
+        {{ form.contract_type }}
+    </div>
+</div>
+
+<!-- Sanepid -->
+<h3 class="form-section-title">Sanepid</h3>
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-group__label" for="sanepidStatus">{% trans "Статус" %}</label>
+        {{ form.sanepid_status }}
+    </div>
+    <div class="form-group">
+        <label class="form-group__label" for="sanepidEndDate">{% trans "Дійсний до" %}</label>
+        {{ form.sanepid_end_date }}
+    </div>
+</div>
+
+<!-- Контакти -->
+<h3 class="form-section-title">{% trans "Контакти" %}</h3>
+<div class="contacts">
+    {{ contact_formset.management_form }}
+    <div class="contacts__list" id="contacts-list">
+        {% for contact in contact_formset %}
+        {{ contact.id }}
+        {{ contact.employee }}
+        <div class="contacts__item">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-group__label">{% trans "Тип контакту" %}</label>
+                    {{ contact.contact_type }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-group__label">{% trans "Значення" %}</label>
+                    {{ contact.value }}
+                </div>
+
+                {% if contact.DELETE %}
+                <div class="form-group form-group--delete">
+                    <label class="form-group__label">{% trans "Видалити" %}</label>
+                    {{ contact.DELETE }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" class="contacts__add-btn" id="add-contact">{% trans "Додати контакт" %}</button>
+</div>
+
+<!-- Hidden template for new contacts -->
+<div id="contact-template" style="display:none;">
+    <div class="contacts__item">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-group__label">{% trans "Тип контакту" %}</label>
+                <select name="contacts-__prefix__-contact_type" class="form-group__select">
+                    <option value="phone">{% trans "Телефон" %}</option>
+                    <option value="email">Email</option>
+                    <option value="viber">Viber</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label">{% trans "Значення" %}</label>
+                <input type="text" name="contacts-__prefix__-value" class="form-group__input">
+            </div>
+
+            <div class="form-group form-group--delete">
+                <label class="form-group__label">{% trans "Видалити" %}</label>
+                <input type="checkbox" name="contacts-__prefix__-DELETE">
+            </div>
+            <input type="hidden" name="contacts-__prefix__-id">
+            <input type="hidden" name="contacts-__prefix__-employee">
+        </div>
+    </div>
+</div>
+
+<!-- Додаткова інформація -->
+<h3 class="form-section-title">{% trans "Додаткова інформація" %}</h3>
+<div class="form-row">
+    <div class="form-group form-group--full">
+        <label class="form-group__label" for="additionalInfo">{% trans "Примітки" %}</label>
+        {{ form.additional_information }}
+    </div>
+</div>

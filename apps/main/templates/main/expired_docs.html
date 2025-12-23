@@ -1,0 +1,91 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Документи з терміном, що закінчується" %}{% endblock %}
+
+{% block content %}
+
+<div class="expired-docs">
+    <!-- Header -->
+    <div class="expired-docs__header">
+        <h1 class="expired-docs__title">{% trans "Документи з терміном, що закінчується" %}</h1>
+        <span class="expired-docs__count">{{ notifications_count }} {% trans "документів" %}</span>
+    </div>
+
+    {% if notifications %}
+    <!-- Grid of notification cards -->
+    <div class="expired-docs__grid">
+        {% for notification in notifications %}
+        <div class="notification-card notification-card--{% if notification.days_left <= 7 %}critical{% elif notification.days_left <= 30 %}warning{% else %}normal{% endif %}">
+            <!-- Card Header -->
+            <div class="notification-card__header">
+                {% if notification.days_left <= 7 %}
+                <span class="notification-card__urgency">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 10a1 1 0 110-2 1 1 0 010 2zm1-3H7V4h2v4z"/>
+                    </svg>
+                    {% trans "Термінове" %}
+                </span>
+                {% endif %}
+                <span class="notification-card__type">
+                    {% if notification.notification_type == 'document' %}
+                        {% trans "Документ" %}
+                    {% elif notification.notification_type == 'work_permit' %}
+                        {% trans "Дозвіл на роботу" %}
+                    {% else %}
+                        {{ notification.notification_type }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- Card Body -->
+            <div class="notification-card__body">
+                <div class="notification-card__employee">
+                    <strong>{% trans "Співробітник:" %}</strong> {{ notification.employee.get_full_name|default:"Невідомий співробітник" }}
+                </div>
+                <div class="notification-card__document">
+                    <strong>{% trans "Документ:" %}</strong> 
+                    {% if notification.document %}
+                        {{ notification.document.doc_type }}
+                    {% elif notification.work_permit %}
+                        {{ notification.work_permit.doc_type }}
+                    {% else %}
+                        {% trans "Не вказано" %}
+                    {% endif %}
+                </div>
+                <div class="notification-card__days">
+                    <strong>{% trans "Днів залишилось:" %}</strong> 
+                    {% if notification.days_left is not None %}
+                        {{ notification.days_left }}
+                    {% else %}
+                        {% trans "Невідомо" %}
+                    {% endif %}
+                </div>
+                {% if notification.message %}
+                <div class="notification-card__message">
+                    {{ notification.message }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Card Footer -->
+            <div class="notification-card__footer">
+                <span class="notification-card__date">{{ notification.created_at|date:"d.m.Y" }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="expired-docs__empty">
+        <svg class="expired-docs__empty-icon" width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="30" stroke="#E1E8ED" stroke-width="4"/>
+            <path d="M32 20v16m0 4h.01" stroke="#6C757D" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <h2 class="expired-docs__empty-title">{% trans "Немає документів з терміном, що закінчується" %}</h2>
+        <p class="expired-docs__empty-text">{% trans "Всі документи актуальні" %}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

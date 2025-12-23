@@ -1,0 +1,80 @@
+{% load i18n %}
+<div class="employees__pagination {% if position == 'top' %}pagination-top{% endif %}">
+    <span class="employees__pagination-info">
+        {% if employees.paginator.num_pages > 1 %}
+            {% trans "Сторінка" %} {{ employees.number }} {% trans "з" %} {{ employees.paginator.num_pages }}
+        {% endif %}
+    </span>
+
+    <div class="employees__pagination-controls">
+        {% if employees.has_previous %}
+            <a href="?{{ params }}&page=1"
+               hx-get="{% url 'main:dashboard' %}?{{ params }}&page=1"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="employees__pagination-btn employees__pagination-btn--first"
+               aria-label="First page">
+                {% trans "Перша" %}
+            </a>
+            <a href="?{{ params }}&page={{ employees.previous_page_number }}"
+               hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ employees.previous_page_number }}"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="employees__pagination-btn employees__pagination-btn--prev"
+               aria-label="Previous page">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </a>
+        {% endif %}
+
+        <div class="employees__pagination-numbers">
+            {% for page_num in employees.paginator.page_range %}
+                {% if page_num == employees.number %}
+                    <span class="employees__pagination-btn employees__pagination-btn--active">
+                        {{ page_num }}
+                    </span>
+                {% elif page_num > employees.number|add:'-3' and page_num < employees.number|add:'3' %}
+                    <a href="?{{ params }}&page={{ page_num }}"
+                       hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ page_num }}"
+                       hx-target="#employees-table-body"
+                       hx-swap="outerHTML"
+                       class="employees__pagination-btn employees__pagination-btn--number">
+                        {{ page_num }}
+                    </a>
+                {% elif page_num == 1 or page_num == employees.paginator.num_pages %}
+                    <a href="?{{ params }}&page={{ page_num }}"
+                       hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ page_num }}"
+                       hx-target="#employees-table-body"
+                       hx-swap="outerHTML"
+                       class="employees__pagination-btn employees__pagination-btn--number">
+                        {{ page_num }}
+                    </a>
+                {% elif page_num == employees.number|add:'-3' or page_num == employees.number|add:'3' %}
+                    <span class="employees__pagination-ellipsis">...</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if employees.has_next %}
+            <a href="?{{ params }}&page={{ employees.next_page_number }}"
+               hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ employees.next_page_number }}"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="employees__pagination-btn employees__pagination-btn--next"
+               aria-label="Next page">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </a>
+            <a href="?{{ params }}&page={{ employees.paginator.num_pages }}"
+               hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ employees.paginator.num_pages }}"
+               hx-target="#employees-table-body"
+               hx-swap="outerHTML"
+               class="employees__pagination-btn employees__pagination-btn--last"
+               aria-label="Last page">
+                {% trans "Остання" %}
+            </a>
+        {% endif %}
+    </div>
+</div>

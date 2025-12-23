@@ -1,0 +1,43 @@
+{% load i18n %}
+<div class="modal modal--active" id="viewEmployeeModal">
+    <div class="modal__overlay" onclick="closeDetailModal()"></div>
+    <div class="modal__content modal__content--view">
+        <div class="modal__header">
+            <h2 class="modal__title">{% trans "Детальна інформація" %}</h2>
+            <button class="modal__close" onclick="closeDetailModal()" aria-label="Close modal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="employee-card">
+            {% include 'main/partials/employee_profile.html' %}
+        </div>
+    </div>
+</div>
+
+<script>
+function closeDetailModal() {
+    document.getElementById('modal-container').innerHTML = '';
+}
+
+function editEmployee(employeeId) {
+    htmx.ajax('GET',
+        "{% url 'main:employee_form' %}?action=edit&employee_id=" + employeeId,
+        {target: '#modal-container', swap: 'innerHTML'}
+    );
+}
+
+function deleteEmployee(employeeId) {
+    if (confirm('{% trans "Ви впевнені, що хочете видалити цього співробітника?" %}')) {
+        htmx.ajax('DELETE',
+            "/api/auth/profile/" + employeeId + "/delete/",
+            {target: '#employees-table-body', swap: 'outerHTML'}
+        ).then(() => {
+            document.getElementById('modal-container').innerHTML = '';
+            htmx.trigger(document.body, 'employeeDeleted');
+        });
+    }
+}
+</script>

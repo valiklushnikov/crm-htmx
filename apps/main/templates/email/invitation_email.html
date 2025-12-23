@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zaproszenie do rejestracji</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .header-title {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 20px;
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .message {
+            font-size: 16px;
+            color: #4a5568;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .cta-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .info-box {
+            background-color: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .info-box strong {
+            color: #2d3748;
+        }
+
+        .alternative-link {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .alternative-link p {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 10px;
+        }
+
+        .link-text {
+            word-break: break-all;
+            color: #667eea;
+            font-size: 13px;
+            display: block;
+            padding: 10px;
+            background-color: #ffffff;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .footer {
+            background-color: #2d3748;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0aec0;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .footer-links {
+            margin-top: 20px;
+        }
+
+        .footer-link {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 13px;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #e2e8f0;
+            margin: 30px 0;
+        }
+
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .header-title {
+                font-size: 24px;
+            }
+
+            .greeting {
+                font-size: 18px;
+            }
+
+            .message {
+                font-size: 15px;
+            }
+
+            .cta-button {
+                padding: 14px 30px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <img src="cid:logo" alt="akorasp.com" class="logo">
+            <h1 class="header-title">Запрошення до реєстрації</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p class="greeting">Привіт!</p>
+
+            <p class="message">
+                Ви отримали це повідомлення, оскільки вас запросили приєднатися до платформи <strong>akorasp.com</strong>. Ми раді, що ви хочете стати частиною нашої спільноти!
+            </p>
+
+            <p class="message">
+                Щоб завершити процес реєстрації, натисніть кнопку нижче:
+            </p>
+
+            <!-- CTA Button -->
+            <div class="cta-container">
+                <a href="{{ registration_url }}" class="cta-button">Зареєструватися зараз</a>
+            </div>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <p><strong>⏰ Важливо:</strong> Це запрошення дійсне протягом <strong>{{ days_valid }} днів</strong> до <strong>{{ expires_at|date:"d.m.Y H:i" }}</strong></p>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Alternative Link -->
+            <div class="alternative-link">
+                <p><strong>Кнопка не працює?</strong> Скопіюйте та вставте посилання нижче у свій браузер:</p>
+                <span class="link-text">{{ registration_url }}</span>
+            </div>
+
+            <p class="message" style="margin-top: 30px; font-size: 14px; color: #718096;">
+                Якщо ви не очікували цього запрошення, можете проігнорувати це повідомлення.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">© 2025 akorasp.com.</p>
+            <p class="footer-text">Цей електронний лист було надіслано на адресу: <strong>{{ email }}</strong></p>
+
+            <div class="footer-links">
+                <a href="https://akorasp.com" class="footer-link">Домашня сторінка</a>
+                <a href="https://akorasp.com/" class="footer-link">Контакти</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

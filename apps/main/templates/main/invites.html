@@ -1,0 +1,47 @@
+{% extends 'main/base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="page-invites">
+    <h2 class="page-invites__title">{% trans "Запрошення користувачів" %}</h2>
+
+    <form method="post" class="invite-form">
+      {% csrf_token %}
+      <input type="email" name="email" placeholder="{% trans 'Email співробітника' %}" required class="invite-form__input">
+      <button type="submit" class="invite-form__button">{% trans "Створити запрошення" %}</button>
+    </form>
+
+    <hr class="page-invites__divider">
+
+    <table class="invites-table">
+      <thead class="invites-table__head">
+        <tr class="invites-table__row">
+          <th class="invites-table__cell">Email</th>
+          <th class="invites-table__cell">{% trans "Посилання" %}</th>
+          <th class="invites-table__cell">{% trans "Статус" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for invite in invites %}
+        <tr class="invites-table__row">
+          <td class="invites-table__cell">{{ invite.email }}</td>
+          <td class="invites-table__cell">
+            ✅ {% trans "Відправлено" %}
+          </td>
+          <td class="invites-table__cell">
+            {% if invite.is_valid %}✅ {% trans "Дійсне" %}{% else %}❌ {% trans "Прострочене" %}{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% if messages %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        {% for message in messages %}
+            showNotification('{{ message }}');
+        {% endfor %}
+    });
+</script>
+{% endif %}
+{% endblock %}

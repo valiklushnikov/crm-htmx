@@ -1,0 +1,38 @@
+{% load i18n %}
+
+<div class="modal modal--active" id="errorModal">
+    <div class="modal__overlay" onclick="closeErrorModal()"></div>
+    <div class="modal__content" style="max-width: 400px;">
+        <div class="modal__header">
+            <h2 class="modal__title" style="color: #DC3545;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px;">
+                    <path fill-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Помилка" %}
+            </h2>
+            <button class="modal__close" onclick="closeErrorModal()" aria-label="Close modal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal__form" style="padding: 24px; text-align: center;">
+            <p style="font-size: 16px; color: #374151; line-height: 1.6;">
+                {{ message }}
+            </p>
+        </div>
+
+        <div class="modal__actions" style="padding: 0 24px 24px;">
+            <button class="modal__btn modal__btn--save" onclick="closeErrorModal()" style="width: 100%;">
+                {% trans "Зрозуміло" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function closeErrorModal() {
+    document.getElementById('modal-container').innerHTML = '';
+}
+</script>

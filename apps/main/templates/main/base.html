@@ -1,0 +1,654 @@
+{% load i18n %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3">
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
+
+    {% if request.resolver_match.url_name == 'tasks_board' %}
+    <link rel="stylesheet" href="{% static 'css/tasks.css' %}">
+    {% endif %}
+    {% if request.resolver_match.url_name == 'expired_docs' %}
+    <link rel="stylesheet" href="{% static 'css/expired-docs.css' %}">
+    {% endif %}
+
+    <!-- HTMX Configuration -->
+    <script>
+        // Configure HTMX
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add CSRF token to all HTMX requests
+            document.body.addEventListener('htmx:configRequest', function(evt) {
+                evt.detail.headers['X-CSRFToken'] = getCookie('csrftoken');
+            });
+
+            // Handle errors
+            document.body.addEventListener('htmx:responseError', function(evt) {
+                if (evt.detail.xhr.status === 401) {
+                    window.location.href = '/accounts/login/';
+                } else if (evt.detail.xhr.status === 423) {
+                    showNotification('Цей співробітник зараз редагується іншим користувачем', 'warning');
+                }
+            });
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showNotification(message, type = 'success') {
+            const colors = {
+                success: '#28A745',
+                error: '#DC3545',
+                warning: '#FFC107',
+                info: '#17A2B8'
+            };
+
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: ${colors[type] || colors.success};
+                color: white;
+                padding: 16px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 3000;
+                animation: slideInRight 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Make showNotification globally available
+        window.showNotification = showNotification;
+    </script>
+</head>
+<body>
+<!-- Dashboard Container -->
+<div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar sidebar--collapsed" id="sidebar">
+        <div class="sidebar__header">
+            <div class="sidebar__logo">
+                <svg class="sidebar__logo-icon" width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <rect width="40" height="40" rx="8" fill="#4A90E2"/>
+                    <path d="M20 10L28 15V25L20 30L12 25V15L20 10Z" fill="white"/>
+                </svg>
+            </div>
+        </div>
+
+        <nav class="sidebar__nav">
+            <ul class="sidebar__menu">
+                <li class="sidebar__menu-item {% if request.resolver_match.url_name == 'tasks_board' %}sidebar__menu-item--active{% endif %}">
+                    <a href="{% url 'main:tasks_board' %}" class="sidebar__menu-link">
+                        <svg class="sidebar__menu-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                            <path fill-rule="evenodd"
+                                  d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                        <span class="sidebar__menu-text">{% trans "Завдання" %}</span>
+                    </a>
+                </li>
+                <li class="sidebar__menu-item {% if request.resolver_match.url_name == 'dashboard' %}sidebar__menu-item--active{% endif %}">
+                    <a href="{% url 'main:dashboard' %}" class="sidebar__menu-link">
+                        <svg class="sidebar__menu-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                        </svg>
+                        <span class="sidebar__menu-text">{% trans "Співробітники" %}</span>
+                    </a>
+                </li>
+                <li class="sidebar__menu-item {% if request.resolver_match.url_name == 'invites' %}sidebar__menu-item--active{% endif %}">
+                    <a href="{% url 'main:invites' %}" class="sidebar__menu-link">
+                        <svg class="sidebar__menu-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                  d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                        <span class="sidebar__menu-text">{% trans "Запрошення" %}</span>
+                    </a>
+                </li>
+                <li class="sidebar__menu-item documents-item {% if request.resolver_match.url_name == 'expired_docs' %}sidebar__menu-item--active{% endif %}">
+                    <a href="{% url 'main:expired_docs' %}" class="sidebar__menu-link">
+                        <svg class="sidebar__menu-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                  d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                        <span class="sidebar__menu-text">{% trans "Документи" %}</span>
+                    </a>
+                    <span class="header__notification-badge">{% if expired_docs %}{{ expired_docs.count }}{% else %}0{% endif %}</span>
+                </li>
+                <li class="sidebar__menu-item documents-item {% if request.resolver_match.url_name == 'history_list' %}sidebar__menu-item--active{% endif %}">
+                    <a href="{% url 'main:history_list' %}" class="sidebar__menu-link">
+                        <svg class="sidebar__menu-icon" width="20" height="20" viewBox="0 0 512 512" fill="currentColor">
+                            <path fill-rule="evenodd" d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M366.364,366.309  c-60.922,60.921-159.695,60.921-220.617,0c-30.342-30.342-45.572-70.073-45.691-109.841c-0.04-13.453,10.696-24.72,24.149-24.841  c13.565-0.123,24.601,10.837,24.601,24.374h0.05c0,27.464,10.454,54.929,31.363,75.837c41.817,41.817,109.857,41.817,151.674,0  c41.986-41.985,41.986-109.69,0-151.675c-41.817-41.817-109.857-41.816-151.674,0l0,0c7.367,7.367,3.551,19.973-6.666,22.016  l-43.089,8.618c-9.128,1.826-17.176-6.222-15.35-15.35l8.618-43.089c2.043-10.217,14.649-14.033,22.016-6.666v0  c60.922-60.922,159.695-60.922,220.617,0C427.137,206.463,427.137,305.537,366.364,366.309z M305.26,263.299  c8.744,5.048,11.74,16.229,6.691,24.973v0c-5.048,8.744-16.229,11.74-24.973,6.691l-40.064-23.131l0.001-0.002  c-5.463-3.161-9.142-9.064-9.142-15.83v-64.543c0-10.096,8.185-18.281,18.281-18.281h0c10.096,0,18.281,8.185,18.281,18.281v53.989  L305.26,263.299z"
+                            clip-rule="evenodd"/>
+                        </svg>
+                        <span class="sidebar__menu-text">Історія</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar__footer">
+            <a class="logout-btn" onclick="logout()">
+                <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="#4A90E2"/>
+                    <g transform="translate(2, 2) scale(0.045)">
+                        <path d="m651.9 243.34v313.31c0.054687 15.023-5.2891 29.562-15.055 40.977-9.7695 11.414-23.309 18.941-38.16 21.211l-204.67 32.273v0.003907c-3.2305 0.5-6.4922 0.76562-9.7617 0.78516-16.703 0.003906-32.723-6.6328-44.531-18.441-11.812-11.812-18.445-27.832-18.445-44.535v-141.7h173.18c5.625 0 10.824-3 13.637-7.8711s2.8125-10.875 0-15.746c-2.8125-4.8711-8.0117-7.8711-13.637-7.8711h-292.62l67.59 67.59c2.9844 2.9453 4.668 6.9609 4.6797 11.152 0.015625 4.1914-1.6445 8.2148-4.6094 11.18-2.9648 2.9648-6.9883 4.625-11.18 4.6094-4.1953-0.011719-8.207-1.6953-11.152-4.6797l-94.465-94.465c-1.2305-1.6289-2.3594-3.332-3.3867-5.0977-1.6016-3.8633-1.6016-8.2031 0-12.066 1.0273-1.7656 2.1562-3.4688 3.3867-5.0977l94.465-94.465c3.9883-3.918 9.7539-5.4258 15.148-3.9609 5.3984 1.4648 9.6133 5.6797 11.074 11.074 1.4648 5.3945-0.042969 11.16-3.9609 15.148l-67.59 67.59h119.43v-173.18c-0.007813-18.406 8.0469-35.895 22.039-47.859 13.988-11.961 32.516-17.199 50.699-14.328l204.67 32.273c14.852 2.2695 28.391 9.7969 38.16 21.211 9.7656 11.414 15.109 25.957 15.055 40.977z"
+                              fill="white"/>
+                    </g>
+                </svg>
+                <span class="sidebar__menu-text">{% trans "Вийти" %}</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <button class="sidebar__toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black">
+                    <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+
+            <!-- Search Form with HTMX -->
+            <form method="get"
+                  class="header__search {% if request.resolver_match.url_name == 'dashboard' %}show{% else %}hide{% endif %}"
+                  hx-get="{% url 'main:dashboard' %}"
+                  hx-target="#employees-table-body"
+                  hx-swap="innerHTML"
+                  hx-push-url="true"
+                  hx-include="[name='status']">
+
+                <button type="submit" class="header__search-button" aria-label="{% trans 'Пошук' %}">
+                    <svg class="header__search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+
+                <input type="text"
+                       name="q"
+                       value="{{ request.GET.q }}"
+                       class="header__search-input"
+                       placeholder="{% trans 'Пошук' %}"
+                       hx-get="{% url 'main:dashboard' %}"
+                       hx-trigger="keyup changed delay:500ms"
+                       hx-target="#employees-table-body"
+                       hx-swap="innerHTML"
+                       hx-push-url="true">
+
+                <!-- Hidden fields for filters - синхронизируются с фильтрами -->
+                <div id="searchFormFilters">
+                    {% for status in request.GET.getlist.status %}
+                    <input type="hidden" name="status" value="{{ status }}">
+                    {% endfor %}
+                </div>
+
+                <!-- Hidden field for ordering -->
+                {% if request.GET.ordering %}
+                <input type="hidden" name="ordering" value="{{ request.GET.ordering }}">
+                {% endif %}
+
+                {% if request.GET.q %}
+                <button type="button"
+                        class="header__search-clear"
+                        aria-label="{% trans 'Очистити пошук' %}"
+                        hx-get="{% url 'main:dashboard' %}"
+                        hx-target="#employees-table-body"
+                        hx-swap="innerHTML"
+                        hx-push-url="true"
+                        onclick="document.querySelector('[name=q]').value = ''">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M15 5L5 15M5 5l10 10" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                {% endif %}
+            </form>
+
+            <div class="header__actions">
+                {% load i18n %}
+                {% get_current_language as LANGUAGE_CODE %}
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="language-flag" style="font-size: 20px;">
+                        {% if LANGUAGE_CODE == 'uk' %}🇺🇦{% else %}🇵🇱{% endif %}
+                    </span>
+                    <form class="language-switcher__form" action="{% url 'set_language' %}" method="post">
+                        {% csrf_token %}
+                        <input name="next" type="hidden" value="{{ request.path }}">
+                        <select name="language" class="language-switcher__select" onchange="this.form.submit()">
+                            <option value="uk" {% if LANGUAGE_CODE == 'uk' %}selected{% endif %}>{% trans "Українська" %}</option>
+                            <option value="pl" {% if LANGUAGE_CODE == 'pl' %}selected{% endif %}>{% trans "Polski" %}</option>
+                        </select>
+                    </form>
+                </div>
+                <a href="{% url 'main:tasks_board' %}" class="header__notification" aria-label="Notifications">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+                    </svg>
+                    <span class="header__notification-badge">{% if available_tasks %}{{ available_tasks.count }}{% else %}0{% endif %}</span>
+                </a>
+                <div class="header__user">
+                    <img src="{% if request.user.avatar %}{{ request.user.avatar.url }}{% else %}{% static 'images/default_avatar.png' %}{% endif %}" alt="{{ request.user.get_full_name }}" class="header__user-avatar">
+                    <span class="header__user-name">{{ request.user.get_full_name }}</span>
+                    <svg class="header__user-dropdown" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                        <path d="M6 8L2 4h8L6 8z"/>
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Section -->
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<!-- Modal Container (now handled by HTMX) -->
+<div id="modal-container"></div>
+
+<!-- Context Menu -->
+<div class="context-menu" id="contextMenu">
+    <button class="context-menu__item"
+            onclick="viewEmployeeContext(currentEmployeeId)">
+        <svg class="context-menu__icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 3C4.5 3 1.5 5.5 0 8c1.5 2.5 4.5 5 8 5s6.5-2.5 8-5c-1.5-2.5-4.5-5-8-5zm0 8a3 3 0 110-6 3 3 0 010 6z"/>
+            <circle cx="8" cy="8" r="1.5"/>
+        </svg>
+        <span class="context-menu__text">{% trans "Профіль" %}</span>
+    </button>
+    <button class="context-menu__item"
+            onclick="editEmployeeContext(currentEmployeeId)">
+        <svg class="context-menu__icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M12.146 1.146a.5.5 0 01.708 0l2 2a.5.5 0 010 .708l-9 9a.5.5 0 01-.168.11l-4 1.5a.5.5 0 01-.65-.65l1.5-4a.5.5 0 01.11-.168l9-9z"/>
+        </svg>
+        <span class="context-menu__text">{% trans "Оновити" %}</span>
+    </button>
+    <button class="context-menu__item context-menu__item--danger"
+            onclick="deleteEmployeeContext(currentEmployeeId)">
+        <svg class="context-menu__icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z"/>
+        </svg>
+        <span class="context-menu__text">{% trans "Видалити" %}</span>
+    </button>
+</div>
+
+<!-- Chat Widget (Personal) -->
+<div id="chatWidget" class="chat-widget-collapsed">
+    <!-- Collapsed State - Chat Icon Button -->
+    <div class="chat-toggle-wrapper">
+        <div id="chatToggleBtn" class="chat-toggle-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+        </svg>
+        <span id="chatTotalBadge" class="chat-total-badge" style="display: none;">0</span>
+    </div>
+    </div>
+
+    <!-- Expanded State - Chat Window -->
+    <div id="chatWindow" class="chat-window">
+        <div id="chatHeader" class="chat-header">
+            <button id="chatBackBtn" class="chat-back-btn" style="display: none;">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
+                    <path d="M12 4l-8 8 8 8" stroke="white" stroke-width="2" fill="none"/>
+                </svg>
+            </button>
+            <span id="chatHeaderText">💬 {% trans "Особисті чати" %}</span>
+            <button id="chatCloseBtn" class="chat-close-btn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
+                    <path d="M15 5L5 15M5 5l10 10" stroke="white" stroke-width="2"/>
+                </svg>
+            </button>
+        </div>
+
+        <div id="chatUsers" class="chat-users-list">
+            <!-- Общий чат -->
+            <div class="chat-user chat-user-group" data-user-id="group">
+                <div class="chat-user-info">
+                    <div class="chat-user-avatar chat-user-avatar-group">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                        </svg>
+                    </div>
+                    <span class="chat-user-name">{% trans "Загальний чат" %}</span>
+                </div>
+                <span class="unread-badge" style="display: none;">0</span>
+            </div>
+
+            <!-- Разделитель -->
+            <div class="chat-divider">
+                <span>{% trans "Особисті чати" %}</span>
+            </div>
+
+            <!-- Личные чаты -->
+            {% for user in chat_users %}
+                <div class="chat-user" data-user-id="{{ user.id }}">
+                    <div class="chat-user-info">
+                        <div class="chat-user-avatar">{{ user.first_name.0 }}{{ user.last_name.0 }}</div>
+                        <span class="chat-user-name">{{ user.first_name }} {{ user.last_name }}</span>
+                    </div>
+                    <span class="unread-badge" style="display: none;">0</span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div id="chatBody" class="chat-body" style="display: none;"></div>
+        <!-- File Preview -->
+        <div id="filePreview" class="file-preview">
+            <div class="file-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                </svg>
+            </div>
+            <div class="file-preview-info">
+                <div class="file-preview-name" id="filePreviewName"></div>
+                <div class="file-preview-size" id="filePreviewSize"></div>
+            </div>
+            <button class="file-preview-remove" id="filePreviewRemove">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M4 4l8 8m0-8l-8 8" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- File Uploading Indicator -->
+        <div id="fileUploading" class="file-uploading">
+            <div class="file-uploading-spinner"></div>
+            <span class="file-uploading-text">Відправка файлу...</span>
+        </div>
+
+        <!-- File Size Error -->
+        <div id="fileSizeError" class="file-size-error">
+            Файл занадто великий. Максимальний розмір: 10 MB
+        </div>
+        <div id="chatInputBlock" class="chat-input-block" style="display: none;">
+            <div class="chat-input-row">
+                <!-- Кнопка прикрепления файла -->
+                <button id="fileAttachBtn" class="file-attach-btn" title="Прикріпити файл">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+                <input type="file" id="fileInput" style="display: none;" />
+
+                <input id="chatInput" type="text" placeholder="{% trans 'Написати повідомлення...' %}" />
+
+                <button id="sendBtn">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="white">
+                        <path d="M2 2l18 8-18 8 2-8-2-8z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showContextMenu(event, employeeId) {
+        event.preventDefault();
+        currentEmployeeId = employeeId;
+
+        const contextMenu = document.getElementById('contextMenu');
+        contextMenu.style.left = event.clientX + 'px';
+        contextMenu.style.top = event.clientY + 'px';
+        contextMenu.classList.add('context-menu--active');
+    }
+
+    function viewEmployeeContext(employeeId) {
+        htmx.ajax('GET', '/employee/' + employeeId + '/', {
+            target: '#modal-container',
+            swap: 'innerHTML'
+        });
+        hideContextMenu();
+    }
+
+    function editEmployeeContext(employeeId) {
+        htmx.ajax('GET', '{% url "main:employee_form" %}?action=edit&employee_id=' + employeeId, {
+            target: '#modal-container',
+            swap: 'innerHTML'
+        });
+        hideContextMenu();
+    }
+
+    function deleteEmployeeContext(employeeId) {
+        if (confirm('{% trans "Ви впевнені, що хочете видалити цього співробітника?" %}')) {
+            htmx.ajax('DELETE', '/api/auth/profile/' + employeeId + '/delete/', {
+                target: '#employees-table-body',
+                swap: 'outerHTML'
+            }).then(() => {
+                htmx.trigger(document.body, 'employeeDeleted');
+            });
+        }
+        hideContextMenu();
+    }
+
+    function hideContextMenu() {
+        document.getElementById('contextMenu').classList.remove('context-menu--active');
+    }
+
+    // Close context menu on click outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.context-menu') && !e.target.closest('.employees-table__menu-btn')) {
+            hideContextMenu();
+        }
+    });
+
+    function clearSearch() {
+        const input = document.querySelector('[name="q"]');
+        if (input) {
+            input.value = '';
+            input.form.dispatchEvent(new Event('submit'));
+        }
+    }
+</script>
+
+<!-- Flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<!-- Global Scripts - ВАЖНО: НЕ УДАЛЯТЬ -->
+<script>
+    // Login URL для logout функции
+    const loginUrl = "{% url 'accounts:login_page' %}";
+
+    // Helper function для получения CSRF токена
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Logout function
+    async function logout() {
+        try {
+            const response = await fetch('/api/auth/logout/', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (!response.ok) {
+                console.error('Logout API error:', response.status);
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+
+        window.location.href = loginUrl;
+    }
+
+    // Current User ID
+    const CURRENT_USER_ID = {{ request.user.id|default:"null" }};
+    window.CURRENT_USER_ID = CURRENT_USER_ID;
+
+    // Получаем access token из cookies
+    function getAccessToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'access_token') {
+                return decodeURIComponent(value);
+            }
+        }
+        return null;
+    }
+
+    window.ACCESS_TOKEN = getAccessToken();
+
+    // Функция обновления токена
+    async function refreshAccessToken() {
+        try {
+            const response = await fetch('/api/auth/token/refresh/', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (response.ok) {
+                window.ACCESS_TOKEN = getAccessToken();
+                console.log('Access token refreshed successfully');
+                return true;
+            } else {
+                console.error('Failed to refresh token:', response.status);
+                return false;
+            }
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+            return false;
+        }
+    }
+
+    window.refreshAccessToken = refreshAccessToken;
+
+    // Translations for Chat
+    window.CHAT_TRANSLATIONS = {
+        'personal_chats': '{% trans "Особисті чати" %}',
+        'group_chat': '{% trans "Загальний чат" %}'
+    };
+</script>
+
+<!-- Chat Widget -->
+<script src="{% static 'js/chat/chat.js' %}?v=15"></script>
+<script src="{% static 'js/base.js' %}?v=8"></script>
+
+{% if request.resolver_match.url_name == 'dashboard' %}
+<script>
+    // Translations for JavaScript - ВСЕ переводы
+    window.EMPLOYEE_TRANSLATIONS = {
+        'add_employee': '{% filter escapejs %}{% trans "Додати працівника" %}{% endfilter %}',
+        'update_employee': '{% filter escapejs %}{% trans "Оновити дані працівника" %}{% endfilter %}',
+        'save': '{% filter escapejs %}{% trans "Зберегти" %}{% endfilter %}',
+        'update': '{% filter escapejs %}{% trans "Оновити" %}{% endfilter %}',
+        'cancel': '{% filter escapejs %}{% trans "Скасувати" %}{% endfilter %}',
+        'edit': '{% filter escapejs %}{% trans "Редагувати" %}{% endfilter %}',
+        'delete': '{% filter escapejs %}{% trans "Видалити" %}{% endfilter %}',
+        'delete_employee': '{% filter escapejs %}{% trans "Ви впевнені, що хочете видалити цього співробітника?" %}{% endfilter %}',
+        'auth_error': '{% filter escapejs %}{% trans "Помилка авторизації. Будь ласка, увійдіть знову" %}{% endfilter %}',
+        'employee_not_found': '{% filter escapejs %}{% trans "Співробітника не знайдено" %}{% endfilter %}',
+        'error_loading_employee': '{% filter escapejs %}{% trans "Помилка завантаження даних співробітника" %}{% endfilter %}',
+        'auth_error_short': '{% filter escapejs %}{% trans "Помилка авторизації" %}{% endfilter %}',
+        'error_deleting_employee': '{% filter escapejs %}{% trans "Помилка видалення співробітника" %}{% endfilter %}',
+        'employee_deleted': '{% filter escapejs %}{% trans "Співробітника успішно видалено" %}{% endfilter %}',
+        'not_specified': '{% filter escapejs %}{% trans "Не вказано" %}{% endfilter %}',
+        'yes': '{% filter escapejs %}{% trans "Так" %}{% endfilter %}',
+        'no': '{% filter escapejs %}{% trans "Ні" %}{% endfilter %}',
+        'employed': '{% filter escapejs %}{% trans "Працевлаштований" %}{% endfilter %}',
+        'fired': '{% filter escapejs %}{% trans "Звільнений" %}{% endfilter %}',
+        'employment_contract': '{% filter escapejs %}{% trans "Трудовий договір" %}{% endfilter %}',
+        'position_change': '{% filter escapejs %}{% trans "Зміна посади" %}{% endfilter %}',
+        'start_date': '{% filter escapejs %}{% trans "Дата початку" %}{% endfilter %}',
+        'end_date': '{% filter escapejs %}{% trans "Дата закінчення" %}{% endfilter %}',
+        'no_employment_periods': '{% filter escapejs %}{% trans "Періоди зайнятості відсутні" %}{% endfilter %}',
+        'document': '{% filter escapejs %}{% trans "Документ" %}{% endfilter %}',
+        'expired': '{% filter escapejs %}{% trans "Прострочено" %}{% endfilter %}',
+        'valid': '{% filter escapejs %}{% trans "Дійсний" %}{% endfilter %}',
+        'document_type': '{% filter escapejs %}{% trans "Тип документа" %}{% endfilter %}',
+        'no_documents': '{% filter escapejs %}{% trans "Документи відсутні" %}{% endfilter %}',
+        'work_permit': '{% filter escapejs %}{% trans "Дозвіл на роботу" %}{% endfilter %}',
+        'permit_type': '{% filter escapejs %}{% trans "Тип дозволу" %}{% endfilter %}',
+        'no_work_permits': '{% filter escapejs %}{% trans "Дозволи на роботу відсутні" %}{% endfilter %}',
+        'application_type': '{% filter escapejs %}{% trans "Тип заявки" %}{% endfilter %}',
+        'submission_date': '{% filter escapejs %}{% trans "Дата подання" %}{% endfilter %}',
+        'no_card_submissions': '{% filter escapejs %}{% trans "Подання карток відсутні" %}{% endfilter %}',
+        'contract_type': '{% filter escapejs %}{% trans "Тип контракту" %}{% endfilter %}',
+        'no_contracts': '{% filter escapejs %}{% trans "Контракти відсутні" %}{% endfilter %}',
+        'sanitary_book': '{% filter escapejs %}{% trans "Санітарна книжка" %}{% endfilter %}',
+        'status': '{% filter escapejs %}{% trans "Статус" %}{% endfilter %}',
+        'no_sanitary_books': '{% filter escapejs %}{% trans "Санітарні книжки відсутні" %}{% endfilter %}',
+        'contact_type': '{% filter escapejs %}{% trans "Тип контакту" %}{% endfilter %}',
+        'value': '{% filter escapejs %}{% trans "Значення" %}{% endfilter %}',
+        'no_contacts': '{% filter escapejs %}{% trans "Контакти відсутні" %}{% endfilter %}',
+        'personal_information': '{% filter escapejs %}{% trans "Особиста інформація" %}{% endfilter %}',
+        'first_name': '{% filter escapejs %}{% trans "Імʼя" %}{% endfilter %}',
+        'last_name': '{% filter escapejs %}{% trans "Прізвище" %}{% endfilter %}',
+        'age': '{% filter escapejs %}{% trans "Вік" %}{% endfilter %}',
+        'years': '{% filter escapejs %}{% trans "років" %}{% endfilter %}',
+        'workplace': '{% filter escapejs %}{% trans "Місце роботи" %}{% endfilter %}',
+        'workplace_not_specified': '{% filter escapejs %}{% trans "Місце роботи не вказано" %}{% endfilter %}',
+        'student': '{% filter escapejs %}{% trans "Студент" %}{% endfilter %}',
+        'name_not_specified': '{% filter escapejs %}{% trans "Імʼя не вказано" %}{% endfilter %}',
+        'employment_periods': '{% filter escapejs %}{% trans "Періоди зайнятості" %}{% endfilter %}',
+        'documents': '{% filter escapejs %}{% trans "Документи" %}{% endfilter %}',
+        'work_permits': '{% filter escapejs %}{% trans "Дозволи на роботу" %}{% endfilter %}',
+        'card_submissions': '{% filter escapejs %}{% trans "Подання карток" %}{% endfilter %}',
+        'contracts': '{% filter escapejs %}{% trans "Контракти" %}{% endfilter %}',
+        'sanitary_books': '{% filter escapejs %}{% trans "Санітарні книжки" %}{% endfilter %}',
+        'contacts': '{% filter escapejs %}{% trans "Контакти" %}{% endfilter %}',
+        'additional_information': '{% filter escapejs %}{% trans "Додаткова інформація" %}{% endfilter %}'
+    };
+</script>
+<!-- HTMX-specific app logic (minimal) - заменяет старый app.js -->
+<script src="{% static 'js/app-htmx.js' %}?v=1"></script>
+{% endif %}
+
+</body>
+</html>

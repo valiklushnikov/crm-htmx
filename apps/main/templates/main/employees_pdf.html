@@ -1,0 +1,216 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>{% trans "Список співробітників" %}</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0.8cm;
+        }
+        
+        body {
+            font-family: DejaVu Sans, Arial, sans-serif;
+            font-size: 7pt;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 12pt;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .meta {
+            text-align: right;
+            font-size: 6pt;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 6pt;
+            table-layout: fixed;
+        }
+        
+        th {
+            background-color: #4A90E2;
+            color: white;
+            padding: 4px 2px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-weight: bold;
+            word-wrap: break-word;
+        }
+        
+        td {
+            padding: 3px 2px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+            word-wrap: break-word;
+            overflow: hidden;
+        }
+        
+        /* Фіксовані ширини колонок */
+        th:nth-child(1), td:nth-child(1) { width: 3%; }  /* № */
+        th:nth-child(2), td:nth-child(2) { width: 8%; }  /* Прізвище */
+        th:nth-child(3), td:nth-child(3) { width: 7%; }  /* Ім'я */
+        th:nth-child(4), td:nth-child(4) { width: 3%; }  /* Вік */
+        th:nth-child(5), td:nth-child(5) { width: 8%; }  /* Місце роботи */
+        th:nth-child(6), td:nth-child(6) { width: 8%; }  /* Статус */
+        th:nth-child(7), td:nth-child(7) { width: 8%; }  /* PESEL */
+        th:nth-child(8), td:nth-child(8) { width: 4%; }  /* Студент */
+        th:nth-child(9), td:nth-child(9) { width: 12%; } /* Період */
+        th:nth-child(10), td:nth-child(10) { width: 12%; } /* Документи */
+        th:nth-child(11), td:nth-child(11) { width: 10%; } /* Дозвіл */
+        th:nth-child(12), td:nth-child(12) { width: 7%; }  /* Контракт */
+        th:nth-child(13), td:nth-child(13) { width: 10%; } /* Контакти */
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .status-works {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .status-fired {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .status-contract {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        
+        .status-shift {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0.5cm;
+            left: 1cm;
+            right: 1cm;
+            text-align: center;
+            font-size: 6pt;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>{% trans "Список співробітників" %}</h1>
+    
+    <div class="meta">
+        {% trans "Дата формування" %}: {{ current_date|date:"d.m.Y H:i" }} | 
+        {% trans "Всього співробітників" %}: {{ employees|length }}
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>{% trans "Прізвище" %}</th>
+                <th>{% trans "Ім'я" %}</th>
+                <th>{% trans "Вік" %}</th>
+                <th>{% trans "Місце роботи" %}</th>
+                <th>{% trans "Статус" %}</th>
+                <th>PESEL</th>
+                <th>{% trans "Студент" %}</th>
+                <th>{% trans "Період роботи" %}</th>
+                <th>{% trans "Документи" %}</th>
+                <th>{% trans "Дозвіл на роботу" %}</th>
+                <th>{% trans "Контракт" %}</th>
+                <th>{% trans "Контакти" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for employee in employees %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ employee.last_name|default:"—" }}</td>
+                <td>{{ employee.first_name|default:"—" }}</td>
+                <td>{{ employee.age|default:"—" }}</td>
+                <td>{{ employee.workplace|default:"—" }}</td>
+                <td>
+                    {% if employee.working_status == "Pracujący" %}
+                        <span class="status-works">{% trans "Працевлаштований" %}</span>
+                    {% elif employee.working_status == "Zwolniony" %}
+                        <span class="status-fired">{% trans "Звільнений" %}</span>
+                    {% elif employee.working_status == "Umowa o prace" %}
+                        <span class="status-contract">{% trans "Трудовий договір" %}</span>
+                    {% elif employee.working_status == "Zmiana stanowiska" %}
+                        <span class="status-shift">{% trans "Зміна посади" %}</span>
+                    {% else %}
+                        {{ employee.working_status|default:"—" }}
+                    {% endif %}
+                </td>
+                <td>{{ employee.pesel|default:"—" }}</td>
+                <td>{% if employee.is_student %}{% trans "Так" %}{% else %}{% trans "Ні" %}{% endif %}</td>
+                <td>
+                    {% if employee.employment_period.all %}
+                        {% for period in employee.employment_period.all %}
+                            {{ period.start_date|date:"d.m.Y"|default:"—" }} - {{ period.end_date|date:"d.m.Y"|default:"—" }}{% if not forloop.last %}<br>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if employee.documents.all %}
+                        {% for doc in employee.documents.all %}
+                            {{ doc.doc_type|default:"—" }} ({{ doc.valid_until|date:"d.m.Y"|default:"—" }}){% if not forloop.last %}<br>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if employee.work_permits.all %}
+                        {% for permit in employee.work_permits.all %}
+                            {{ permit.doc_type|default:"—" }} ({{ permit.end_date|date:"d.m.Y"|default:"—" }}){% if not forloop.last %}<br>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if employee.contracts.all %}
+                        {% for contract in employee.contracts.all %}
+                            {{ contract.contract_type|default:"—" }}{% if not forloop.last %}<br>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if employee.contacts.all %}
+                        {% for contact in employee.contacts.all %}
+                            {{ contact.contact_type }}: {{ contact.value }}{% if not forloop.last %}<br>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="13" style="text-align: center; padding: 20px;">{% trans "Немає співробітників" %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="footer">
+        {% trans "Згенеровано системою управління співробітниками" %}
+    </div>
+</body>
+</html>

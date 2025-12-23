@@ -1,0 +1,152 @@
+{% extends 'users/base.html' %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Реєстрація" %}{% endblock %}
+{% block content %}
+<h1 class="auth-title">{% trans "Реєстрація" %}</h1>
+<p class="subtitle">{% trans "Створіть новий акаунт" %}</p>
+
+<div id="message"></div>
+
+<form id="registerForm">
+    {% csrf_token %}
+    <input type="hidden" name="invite_token" id="invite_token">
+    <div class="form-group">
+        <label for="email">{% trans "Email" %} *</label>
+        <input type="email" id="email" name="email" required>
+    </div>
+
+    <div class="form-row register-row">
+        <div class="form-group">
+            <label for="first_name">{% trans "Ім'я" %}</label>
+            <input type="text" id="first_name" name="first_name">
+        </div>
+
+        <div class="form-group">
+            <label for="last_name">{% trans "Прізвище" %}</label>
+            <input type="text" id="last_name" name="last_name">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="password">{% trans "Пароль" %} *</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+
+    <div class="form-group">
+        <label for="password2">{% trans "Підтвердження пароля" %} *</label>
+        <input type="password" id="password2" name="password2" required>
+    </div>
+
+    <button class="btn-auth" type="submit" id="submitBtn">{% trans "Зареєструватися" %}</button>
+    <div class="loading" id="loading">{% trans "Реєстрація..." %}</div>
+</form>
+
+<div class="login-link">
+    {% trans "Вже є акаунт?" %} <a style="display: inline-block;" href="{% url 'accounts:login_page' %}">{% trans "Увійти" %}</a>
+    {% get_current_language as LANGUAGE_CODE %}
+    <div style="display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 10px;">
+        <span class="language-flag" style="font-size: 24px;">
+            {% if LANGUAGE_CODE == 'uk' %}🇺🇦{% else %}🇵🇱{% endif %}
+        </span>
+        <form class="language-switcher__form auth-form" action="{% url 'set_language' %}" method="post">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.path }}">
+            <select name="language" class="language-switcher__select" onchange="this.form.submit()">
+                <option value="uk" {% if LANGUAGE_CODE == 'uk' %}selected{% endif %}>{% trans "Українська" %}</option>
+                <option value="pl" {% if LANGUAGE_CODE == 'pl' %}selected{% endif %}>{% trans "Polski" %}</option>
+            </select>
+        </form>
+    </div>
+</div>
+<script>
+        function getInviteToken() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("invite");
+        }
+        document.addEventListener("DOMContentLoaded", function() {
+            const inviteToken = getInviteToken();
+            if (inviteToken) {
+              document.getElementById("invite_token").value = inviteToken;
+            }
+        });
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const messageDiv = document.getElementById('message');
+
+            const formData = {
+                email: document.getElementById('email').value,
+                first_name: document.getElementById('first_name').value,
+                last_name: document.getElementById('last_name').value,
+                password: document.getElementById('password').value,
+                password2: document.getElementById('password2').value,
+                invite_token: document.getElementById("invite_token").value
+            };
+
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            messageDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/auth/register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.innerHTML = `<div class="success">${data.message}</div>`;
+
+                    setTimeout(() => {
+                        window.location.href = "{% url 'main:dashboard' %}";
+                    }, 500);
+                } else {
+                    let errorHtml = '<div class="error"><ul>';
+                    for (let field in data) {
+                        if (Array.isArray(data[field])) {
+                            data[field].forEach(error => {
+                                errorHtml += `<li><strong>{% filter escapejs %}{% trans "Помилка:" %}{% endfilter %}</strong> ${error}</li>`;
+                            });
+                        } else {
+                            errorHtml += `<li>${data[field]}</li>`;
+                        }
+                    }
+                    errorHtml += '</ul></div>';
+                    messageDiv.innerHTML = errorHtml;
+
+                    submitBtn.disabled = false;
+                    loading.style.display = 'none';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="error">{% filter escapejs %}{% trans "Сталася помилка. Спробуйте знову." %}{% endfilter %}</div>';
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+{% endblock %}

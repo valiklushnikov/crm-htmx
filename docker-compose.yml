@@ -1,0 +1,119 @@
+services:
+  web:
+    build: .
+    container_name: akora-crm
+    command: sh entrypoint.sh
+    volumes:
+      - .:/app
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    expose:
+      - "8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_backups:/backups
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  celery_worker:
+    build: .
+    container_name: celery_worker
+    command: celery -A core worker --loglevel=info
+    volumes:
+      - .:/app
+      - postgres_backups:/backups
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+  celery_beat:
+    build: .
+    container_name: celery_beat
+    command: celery -A core beat --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # - /etc/letsencrypt/:/etc/letsencrypt/
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    depends_on:
+      - web
+
+  websocket:
+    build: .
+    container_name: akora-asgi
+    command: daphne -b 0.0.0.0 -p 8001 core.asgi:application
+    volumes:
+      - .:/app
+      - media_data:/app/media
+    depends_on:
+      - db
+      - redis
+    expose:
+      - "8001"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+  adminer:
+      image: adminer:latest
+      container_name: adminer
+      depends_on:
+        - db
+      environment:
+        ADMINER_DEFAULT_SERVER: db
+      expose:
+        - "8080"
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:
+  redis_data:
+  postgres_backups:

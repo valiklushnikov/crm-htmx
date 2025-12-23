@@ -1,0 +1,323 @@
+{% extends "main/base.html" %}
+{% load i18n %}
+{% load history_filters %}
+{% block content %}
+
+<div class="employees">
+    <!-- Header -->
+    <div class="employees__header">
+        <h1 class="employees__title">
+            {% trans "Журнал змін" %}
+            <span class="employees__count">{{ page_obj.paginator.count }}</span>
+        </h1>
+        <div class="employees__controls">
+            <button class="employees__filter" id="historyFilterBtn" aria-label="{% trans 'Фільтр' %}">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Dropdown -->
+    <div class="filter-dropdown" id="historyFilterDropdown">
+        <div class="filter-dropdown__menu" id="historyFilterMenu">
+            <div class="filter-dropdown__header">
+                <h3 class="filter-dropdown__title">{% trans "Фільтри" %}</h3>
+                <button class="filter-dropdown__close" id="historyFilterClose" aria-label="{% trans 'Закрити' %}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+            <form method="get" class="filter-dropdown__form" id="historyFilterForm">
+                <div class="filter-dropdown__group">
+                    <label class="form-group__label">{% trans "Хто вніс зміни" %}</label>
+                    <select name="user" class="form-group__select">
+                        <option value="">{% trans "Всі користувачі" %}</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {% if request.GET.user == user.id|stringformat:"s" %}selected{% endif %}>
+                            {{ user.get_full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-dropdown__actions">
+                    <a href="{% url 'main:history_list' %}" class="filter-dropdown__btn filter-dropdown__btn--clear">
+                        {% trans "Скинути" %}
+                    </a>
+                    <button type="submit" class="filter-dropdown__btn filter-dropdown__btn--apply">
+                        {% trans "Застосувати" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pagination Top -->
+    <div class="employees__pagination pagination-top">
+        <span class="employees__pagination-info">
+            {% if page_obj.paginator.num_pages > 1 %}
+                {% trans "Сторінка" %} {{ page_obj.number }} {% trans "з" %} {{ page_obj.paginator.num_pages }}
+            {% endif %}
+        </span>
+    
+        <div class="employees__pagination-controls">
+            {% if page_obj.has_previous %}
+                <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page=1" 
+                class="employees__pagination-btn employees__pagination-btn--first" 
+                aria-label="{% trans 'Перша сторінка' %}">
+                    {% trans "Перша" %}
+                </a>
+                <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_obj.previous_page_number }}" 
+                class="employees__pagination-btn employees__pagination-btn--prev" 
+                aria-label="{% trans 'Попередня сторінка' %}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </a>
+            {% endif %}
+
+            <!-- Page Numbers -->
+            <div class="employees__pagination-numbers">
+                {% for page_num in page_obj.paginator.page_range %}
+                    {% if page_num == page_obj.number %}
+                        <span class="employees__pagination-btn employees__pagination-btn--active">
+                            {{ page_num }}
+                        </span>
+                    {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
+                        <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_num }}" 
+                        class="employees__pagination-btn employees__pagination-btn--number">
+                            {{ page_num }}
+                        </a>
+                    {% elif page_num == 1 or page_num == page_obj.paginator.num_pages %}
+                        <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_num }}" 
+                        class="employees__pagination-btn employees__pagination-btn--number">
+                            {{ page_num }}
+                        </a>
+                    {% elif page_num == page_obj.number|add:'-3' or page_num == page_obj.number|add:'3' %}
+                        <span class="employees__pagination-ellipsis">...</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if page_obj.has_next %}
+                <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_obj.next_page_number }}" 
+                class="employees__pagination-btn employees__pagination-btn--next" 
+                aria-label="{% trans 'Наступна сторінка' %}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </a>
+                <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_obj.paginator.num_pages }}" 
+                class="employees__pagination-btn employees__pagination-btn--last" 
+                aria-label="{% trans 'Остання сторінка' %}">
+                    {% trans "Остання" %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- History Cards -->
+    <div class="history-list">
+        {% for item in history %}
+        <div class="history-card">
+            <div class="history-card__header">
+                <div class="history-card__meta">
+                    <span class="history-card__separator">•</span>
+                    <span class="history-card__date">{{ item.changed_at|date:"d.m.Y H:i" }}</span>
+                </div>
+                {% if item.changed_by %}
+                <div class="history-card__user">
+                    <div class="history-card__avatar">
+                        {% if item.changed_by.avatar %}
+                        <img src="{{ item.changed_by.avatar.url }}" alt="{{ item.changed_by.get_full_name }}">
+                        {% else %}
+                        {{ item.changed_by.first_name.0 }}{{ item.changed_by.last_name.0 }}
+                        {% endif %}
+                    </div>
+                    <span class="history-card__username">{{ item.changed_by.get_full_name }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="history-card__content">
+                <div class="history-card__object">
+                    <svg class="history-card__icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="history-card__object-name">
+                        {% get_display_name item %}
+                    </span>
+                    <span class="history-card__object-type">
+                        ({{ item.content_type|model_verbose_name }})
+                    </span>
+                </div>
+                
+                <div class="history-card__change">
+                    {% if item.action == 'created' %}
+                        <div class="history-card__action history-card__action--created">
+                            <svg class="history-card__icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="history-card__action-text">{% trans "Створено запис" %}</span>
+                        </div>
+                    {% elif item.action == 'deleted' %}
+                        <div class="history-card__action history-card__action--deleted">
+                            <svg class="history-card__icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="history-card__action-text">{% trans "Видалено запис" %}: {{ item.old_value }}</span>
+                        </div>
+                    {% else %}
+                    <div class="history-card__field">
+                        <span class="history-card__field-label">{% trans "Поле" %}:</span>
+                        <span class="history-card__field-name">{{ item.field_name|field_verbose_name }}</span>
+                    </div>
+                    
+                    <div class="history-card__values">
+                        <div class="history-card__value history-card__value--old">
+                            <span class="history-card__value-label">{% trans "Було" %}:</span>
+                            <span class="history-card__value-text">
+                                {% if item.old_value %}{{ item.old_value|format_field_value }}{% else %}<em>{% trans "порожнє" %}</em>{% endif %}
+                            </span>
+                        </div>
+                        
+                        <svg class="history-card__arrow" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                        
+                        <div class="history-card__value history-card__value--new">
+                            <span class="history-card__value-label">{% trans "Стало" %}:</span>
+                            <span class="history-card__value-text">
+                                {% if item.new_value %}{{ item.new_value|format_field_value }}{% else %}<em>{% trans "порожнє" %}</em>{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="employees-table__empty">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p>{% trans "Історія змін відсутня" %}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination Bottom -->
+    <div class="employees__pagination">
+        <span class="employees__pagination-info">
+            {% if page_obj.paginator.num_pages > 1 %}
+                {% trans "Сторінка" %} {{ page_obj.number }} {% trans "з" %} {{ page_obj.paginator.num_pages }}
+            {% endif %}
+        </span>
+    
+        <div class="employees__pagination-controls">
+            {% if page_obj.has_previous %}
+                <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page=1" 
+                class="employees__pagination-btn employees__pagination-btn--first" 
+                aria-label="{% trans 'Перша сторінка' %}">
+                    {% trans "Перша" %}
+                </a>
+                <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_obj.previous_page_number }}" 
+                class="employees__pagination-btn employees__pagination-btn--prev" 
+                aria-label="{% trans 'Попередня сторінка' %}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </a>
+            {% endif %}
+
+            <!-- Page Numbers -->
+            <div class="employees__pagination-numbers">
+                {% for page_num in page_obj.paginator.page_range %}
+                    {% if page_num == page_obj.number %}
+                        <span class="employees__pagination-btn employees__pagination-btn--active">
+                            {{ page_num }}
+                        </span>
+                    {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
+                        <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_num }}" 
+                        class="employees__pagination-btn employees__pagination-btn--number">
+                            {{ page_num }}
+                        </a>
+                    {% elif page_num == 1 or page_num == page_obj.paginator.num_pages %}
+                        <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_num }}" 
+                        class="employees__pagination-btn employees__pagination-btn--number">
+                            {{ page_num }}
+                        </a>
+                    {% elif page_num == page_obj.number|add:'-3' or page_num == page_obj.number|add:'3' %}
+                        <span class="employees__pagination-ellipsis">...</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if page_obj.has_next %}
+                <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_obj.next_page_number }}" 
+                class="employees__pagination-btn employees__pagination-btn--next" 
+                aria-label="{% trans 'Наступна сторінка' %}">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </a>
+                <a href="?{% if request.GET.model %}model={{ request.GET.model }}&{% endif %}{% if request.GET.field %}field={{ request.GET.field }}&{% endif %}page={{ page_obj.paginator.num_pages }}" 
+                class="employees__pagination-btn employees__pagination-btn--last" 
+                aria-label="{% trans 'Остання сторінка' %}">
+                    {% trans "Остання" %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// History Filter Toggle
+const historyFilterBtn = document.getElementById('historyFilterBtn');
+const historyFilterMenu = document.getElementById('historyFilterMenu');
+const historyFilterClose = document.getElementById('historyFilterClose');
+
+if (historyFilterBtn && historyFilterMenu) {
+    historyFilterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        historyFilterMenu.classList.toggle('filter-dropdown__menu--active');
+        
+        // Добавляем/убираем активный класс у кнопки
+        if (historyFilterMenu.classList.contains('filter-dropdown__menu--active')) {
+            historyFilterBtn.classList.add('employees__filter--active');
+        } else {
+            historyFilterBtn.classList.remove('employees__filter--active');
+        }
+    });
+}
+
+if (historyFilterClose) {
+    historyFilterClose.addEventListener('click', () => {
+        historyFilterMenu.classList.remove('filter-dropdown__menu--active');
+        historyFilterBtn.classList.remove('employees__filter--active');
+    });
+}
+
+// Close filter on outside click
+document.addEventListener('click', (e) => {
+    if (historyFilterMenu && !historyFilterMenu.contains(e.target) && e.target !== historyFilterBtn) {
+        historyFilterMenu.classList.remove('filter-dropdown__menu--active');
+        if (historyFilterBtn) {
+            historyFilterBtn.classList.remove('employees__filter--active');
+        }
+    }
+});
+
+// Подсветка активной кнопки фильтра при наличии параметров
+if (historyFilterBtn) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('user')) {
+        historyFilterBtn.classList.add('employees__filter--active');
+    }
+}
+</script>
+
+{% endblock %}

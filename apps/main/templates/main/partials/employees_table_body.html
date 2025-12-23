@@ -1,0 +1,64 @@
+{% load i18n %}
+{% for employee in employees %}
+<div class="employees-table__row task-card"
+     data-status="{{ employee.working_status }}"
+     data-employee-id="{{ employee.id }}"
+     hx-get="{% url 'main:employee_detail' employee.id %}"
+     hx-target="#modal-container"
+     hx-swap="innerHTML"
+     style="cursor: pointer;">
+
+    <div class="employees-table__cell employees-table__cell--name">
+        <svg class="employees-table__avatar" fill="{% if employee.is_student %}blue{% else %}black{% endif %}" width="40" height="40" viewBox="0 0 60 60">
+            <path d="M60,30.017c0-16.542-13.458-30-30-30s-30,13.458-30,30c0,6.142,1.858,11.857,5.038,16.618l-0.002,0.018 c0.005,0,0.01,0.001,0.014,0.001c2.338,3.495,5.393,6.469,8.949,8.721c9.524,6.149,22.473,6.138,32,0 c2.599-1.646,4.928-3.677,6.907-6.017c0.001,0.001,0.002,0.002,0.002,0.003c0.023-0.027,0.045-0.057,0.068-0.084 c0.177-0.211,0.349-0.427,0.521-0.644c0.168-0.209,0.334-0.418,0.497-0.632c0.048-0.063,0.093-0.128,0.14-0.192 c0.21-0.281,0.422-0.56,0.621-0.851l0.207-0.303l-0.002-0.021C58.142,41.874,60,36.159,60,30.017z"/>
+        </svg>
+        <div class="employees-table__info">
+            <div class="employees-table__name">{{ employee.get_full_name }}</div>
+            <div class="employees-table__email">{{ employee.contacts.first.value|default:"-" }}</div>
+        </div>
+    </div>
+
+    <div class="employees-table__cell" data-label="Від:">
+        {{ employee.employment_period.first.start_date|date:"d-m-Y"|default:"-" }}
+    </div>
+    <div class="employees-table__cell" data-label="До:">
+        {{ employee.employment_period.first.end_date|date:"d-m-Y"|default:"-" }}
+    </div>
+    <div class="employees-table__cell" data-label="Підстава:">
+        {{ employee.documents.first.doc_type|default:"-" }}
+    </div>
+    <div class="employees-table__cell" data-label="Термін:">
+        {{ employee.documents.first.valid_until|date:"d-m-Y"|default:"-" }}
+    </div>
+    <div class="employees-table__cell" data-label="Дозвіл:">
+        {{ employee.work_permits.first.doc_type|default:"-" }}
+    </div>
+    <div class="employees-table__cell" data-label="До:">
+        {{ employee.work_permits.first.end_date|date:"d-m-Y"|default:"-" }}
+    </div>
+    <div class="employees-table__cell" data-label="PESEL:">
+        {{ employee.pesel|default:"-" }}
+    </div>
+    <div class="employees-table__cell" data-label="Подача:">
+        {{ employee.card_submissions.first.doc_type|default:"-" }}
+    </div>
+    <div class="employees-table__cell" data-label="Дата:">
+        {{ employee.card_submissions.first.start_date|date:"d-m-Y"|default:"-" }}
+    </div>
+
+    <div class="employees-table__cell employees-table__actions">
+        <button class="employees-table__menu-btn"
+                data-employee-id="{{ employee.id }}"
+                aria-label="More options"
+                onclick="event.stopPropagation(); showContextMenu(event, {{ employee.id }})">
+            <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor">
+                <circle cx="2" cy="2" r="2"/>
+                <circle cx="2" cy="8" r="2"/>
+                <circle cx="2" cy="14" r="2"/>
+            </svg>
+        </button>
+    </div>
+</div>
+{% empty %}
+<div class="employees-table__empty">{% trans "Немає співробітників" %}</div>
+{% endfor %}

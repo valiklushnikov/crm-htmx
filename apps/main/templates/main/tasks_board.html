@@ -1,0 +1,161 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Tasks Board -->
+    <section class="tasks-board">
+        <div class="tasks-board__header">
+            <h1 class="tasks-board__title">{% trans "Дошка завдань" %}</h1>
+            <div class="filter-bar">
+                <select id="filterAssignedTo" class="filter-bar__select"
+                        onchange="applyFilter('assigned_to', this.value)">
+                    <option value="">{% trans "Всі завдання" %}</option>
+                    <option value="me">{% trans "Мої завдання" %}</option>
+                    <!-- User options will be populated dynamically -->
+                </select>
+            </div>
+            <button class="btn-primary" id="addTaskBtn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                          d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                          clip-rule="evenodd"/>
+                </svg>
+                {% trans "Додати завдання" %}
+            </button>
+        </div>
+
+        <div class="tasks-columns">
+            <!-- To Do Column -->
+            <div class="tasks-column">
+                <div class="tasks-column__header">
+                    <h2 class="tasks-column__title">
+                        <span class="tasks-column__icon" style="background-color: #6C757D;">📋</span>
+                        {% trans "Зробити" %}
+                        <span class="tasks-column__count" id="todoCount">0</span>
+                    </h2>
+                </div>
+                <div class="tasks-column__content" id="todoColumn">
+                    <!-- Task cards will be added here -->
+                </div>
+            </div>
+
+            <!-- In Progress Column -->
+            <div class="tasks-column">
+                <div class="tasks-column__header">
+                    <h2 class="tasks-column__title">
+                        <span class="tasks-column__icon" style="background-color: #FFC107;">⚡</span>
+                        {% trans "В процесі" %}
+                        <span class="tasks-column__count" id="inProgressCount">0</span>
+                    </h2>
+                </div>
+                <div class="tasks-column__content" id="inProgressColumn">
+                    <!-- Task cards will be added here -->
+                </div>
+            </div>
+
+            <!-- Completed Column -->
+            <div class="tasks-column">
+                <div class="tasks-column__header">
+                    <h2 class="tasks-column__title">
+                        <span class="tasks-column__icon" style="background-color: #28A745;">✓</span>
+                        {% trans "Виконано" %}
+                        <span class="tasks-column__count" id="completedCount">0</span>
+                    </h2>
+                </div>
+                <div class="tasks-column__content" id="completedColumn">
+                    <!-- Task cards will be added here -->
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<!-- Add/Edit Task Modal -->
+<div class="modal" id="taskModal">
+    <div class="modal__overlay" id="taskModalOverlay"></div>
+    <div class="modal__content">
+        <div class="modal__header">
+            <h2 class="modal__title" id="taskModalTitle">{% trans "Додати завдання" %}</h2>
+            <button class="modal__close" id="taskModalClose" aria-label="Close modal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <form class="modal__form" id="taskForm">
+            <div class="form-group">
+                <label class="form-group__label" for="taskTitle">{% trans "Назва завдання" %} *</label>
+                <input type="text" class="form-group__input" id="taskTitle" name="title" required
+                       placeholder="{% trans 'Введіть назву завдання' %}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label" for="taskDescription">{% trans "Опис" %}</label>
+                <textarea class="form-group__textarea" id="taskDescription" name="description" rows="4"
+                          placeholder="{% trans 'Опишіть завдання детальніше...' %}"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-group__label" for="taskPriority">{% trans "Пріоритет" %}</label>
+                    <select class="form-group__select" id="taskPriority" name="priority">
+                        <option value="low">{% trans "Низький" %}</option>
+                        <option value="medium" selected>{% trans "Середній" %}</option>
+                        <option value="high">{% trans "Високий" %}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-group__label" for="taskDueDate">{% trans "Термін виконання" %}</label>
+                    <input type="date" class="form-group__input" id="taskDueDate" name="due_date">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label" for="taskAssignedTo">{% trans "Призначити" %}</label>
+                <select class="form-group__select" id="taskAssignedTo" name="assigned_to">
+                    <option value="">{% trans "Не призначено" %}</option>
+                    <!-- Users will be loaded here -->
+                </select>
+            </div>
+
+            <div class="modal__actions">
+                <button type="button" class="modal__btn modal__btn--cancel" id="taskModalCancel">{% trans "Скасувати" %}</button>
+                <button type="submit" class="modal__btn modal__btn--save" id="taskModalSaveBtn">{% trans "Створити" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    // Translations for JavaScript
+    window.TRANSLATIONS = {
+        'no_tasks': '{% trans "Немає завдань" %}',
+        'add_task': '{% trans "Додати завдання" %}',
+        'create': '{% trans "Створити" %}',
+        'update': '{% trans "Оновити" %}',
+        'edit_task': '{% trans "Редагувати завдання" %}',
+        'not_assigned': '{% trans "Не призначено" %}',
+        'take_to_work': '{% trans "Взяти в роботу" %}',
+        'complete': '{% trans "Завершити" %}',
+        'return': '{% trans "Повернути" %}',
+        'locked': '{% trans "Заблоковано" %}',
+        'edit': '{% trans "Редагувати" %}',
+        'delete': '{% trans "Видалити" %}',
+        'assigned': '{% trans "Призначено:" %}',
+        'confirm_delete': '{% trans "Ви впевнені, що хочете видалити це завдання?" %}',
+        'task_updated': '{% trans "Завдання оновлено!" %}',
+        'task_created': '{% trans "Завдання створено!" %}',
+        'task_deleted': '{% trans "Завдання видалено!" %}',
+        'status_updated': '{% trans "Статус завдання оновлено!" %}',
+        'error_loading_users': '{% trans "Помилка завантаження користувачів" %}',
+        'error_loading_tasks': '{% trans "Помилка завантаження завдань" %}',
+        'error_updating_status': '{% trans "Помилка оновлення статусу" %}',
+        'error_deleting_task': '{% trans "Помилка видалення завдання" %}',
+        'error_saving_task': '{% trans "Помилка збереження завдання" %}',
+        'priority_low': '{% trans "Низький" %}',
+        'priority_medium': '{% trans "Середній" %}',
+        'priority_high': '{% trans "Високий" %}'
+    };
+</script>
+<script src="{% static 'js/tasks.js' %}"></script>
+{% endblock %}
