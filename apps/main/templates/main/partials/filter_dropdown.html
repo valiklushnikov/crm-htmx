@@ -1,25 +1,24 @@
 {% load i18n %}
 
-<div class="filter-dropdown__menu" id="filterDropdownMenu">
-    <div class="filter-dropdown__header">
-        <h3 class="filter-dropdown__title">{% trans "Фільтр за статусом" %}</h3>
-        <button class="filter-dropdown__close" id="filterCloseBtn" aria-label="Close">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd"
-                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                      clip-rule="evenodd"/>
-            </svg>
-        </button>
-    </div>
-    <form class="filter-dropdown__form"
-            id="filterForm"
-            hx-get="{% url 'main:dashboard' %}"
-            hx-target="#employeesContainer"
-            hx-swap="innerHTML"
-            hx-push-url="true"
-            hx-indicator="#loadingIndicator">
-        <div class="filter-dropdown__group">
-            {% for checkbox in filter.form.status %}
+<div class="filter-dropdown__header">
+    <h3 class="filter-dropdown__title">{% trans "Фільтр за статусом" %}</h3>
+    <button class="filter-dropdown__close" id="filterCloseBtn" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clip-rule="evenodd"/>
+        </svg>
+    </button>
+</div>
+<form class="filter-dropdown__form"
+      id="filterForm"
+      hx-get="{% url 'main:dashboard' %}"
+      hx-target="#employees-table-content"
+      hx-swap="innerHTML"
+      hx-push-url="true"
+      hx-indicator="#table-loading">
+    <div class="filter-dropdown__group">
+        {% for checkbox in filter.form.status %}
             <label class="filter-dropdown__checkbox">
                 <input
                         type="checkbox"
@@ -29,16 +28,15 @@
                 >
                 <span class="filter-dropdown__checkbox-label">{{ checkbox.choice_label }}</span>
             </label>
-            {% endfor %}
-        </div>
-        <div class="filter-dropdown__actions">
-            <button type="button" class="filter-dropdown__btn filter-dropdown__btn--clear"
-                    id="filterClearBtn">
-                {% trans "Очистити" %}
-            </button>
-            <button type="submit" class="filter-dropdown__btn filter-dropdown__btn--apply">
-                {% trans "Застосувати" %}
-            </button>
-        </div>
-    </form>
-</div>
+        {% endfor %}
+    </div>
+    <div class="filter-dropdown__actions">
+        <button type="button" class="filter-dropdown__btn filter-dropdown__btn--clear"
+                id="filterClearBtn">
+            {% trans "Очистити" %}
+        </button>
+        <button type="submit" class="filter-dropdown__btn filter-dropdown__btn--apply">
+            {% trans "Застосувати" %}
+        </button>
+    </div>
+</form>

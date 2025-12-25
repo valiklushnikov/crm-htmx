@@ -1,0 +1,22 @@
+{% load i18n %}
+
+<!-- Pagination Top -->
+{% include 'main/partials/pagination.html' with position='top' %}
+{# Полная таблица с заголовками для HTMX обновлений #}
+<div id="employees-table-container" class="employees-table-container">
+    <div class="employees-table" id="employeesTable">
+        <!-- Header -->
+        <div class="employees-table__head">
+            <div class="employees-table__row employees-table__row--header">
+                {% include 'main/partials/table_header.html' %}
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="employees-table__body" id="employees-table-body">
+            {% include 'main/partials/employees_table_body.html' %}
+        </div>
+    </div>
+</div>
+<!-- Pagination Bottom -->
+{% include 'main/partials/pagination.html' with position='bottom' %}

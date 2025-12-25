@@ -10,16 +10,18 @@
         {% if employees.has_previous %}
             <a href="?{{ params }}&page=1"
                hx-get="{% url 'main:dashboard' %}?{{ params }}&page=1"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
+               hx-push-url="true"
                class="employees__pagination-btn employees__pagination-btn--first"
                aria-label="First page">
                 {% trans "Перша" %}
             </a>
             <a href="?{{ params }}&page={{ employees.previous_page_number }}"
                hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ employees.previous_page_number }}"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
+               hx-push-url="true"
                class="employees__pagination-btn employees__pagination-btn--prev"
                aria-label="Previous page">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -37,16 +39,18 @@
                 {% elif page_num > employees.number|add:'-3' and page_num < employees.number|add:'3' %}
                     <a href="?{{ params }}&page={{ page_num }}"
                        hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ page_num }}"
-                       hx-target="#employees-table-body"
-                       hx-swap="outerHTML"
+                       hx-target="#employees-table-content"
+                       hx-swap="innerHTML"
+                       hx-push-url="true"
                        class="employees__pagination-btn employees__pagination-btn--number">
                         {{ page_num }}
                     </a>
                 {% elif page_num == 1 or page_num == employees.paginator.num_pages %}
                     <a href="?{{ params }}&page={{ page_num }}"
                        hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ page_num }}"
-                       hx-target="#employees-table-body"
-                       hx-swap="outerHTML"
+                       hx-target="#employees-table-content"
+                       hx-swap="innerHTML"
+                       hx-push-url="true"
                        class="employees__pagination-btn employees__pagination-btn--number">
                         {{ page_num }}
                     </a>
@@ -59,8 +63,9 @@
         {% if employees.has_next %}
             <a href="?{{ params }}&page={{ employees.next_page_number }}"
                hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ employees.next_page_number }}"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
+               hx-push-url="true"
                class="employees__pagination-btn employees__pagination-btn--next"
                aria-label="Next page">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -69,8 +74,9 @@
             </a>
             <a href="?{{ params }}&page={{ employees.paginator.num_pages }}"
                hx-get="{% url 'main:dashboard' %}?{{ params }}&page={{ employees.paginator.num_pages }}"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
+               hx-push-url="true"
                class="employees__pagination-btn employees__pagination-btn--last"
                aria-label="Last page">
                 {% trans "Остання" %}

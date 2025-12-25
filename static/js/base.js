@@ -369,3 +369,54 @@ if (changeAvatarBtn && avatarInput) {
         }
     });
 }
+
+const pageModules = {
+    'tasks': () => import('/static/js/tasks.js'),
+    'dashboard': () => import('/static/js/app-htmx.js'),
+    'invites': () => import('/static/js/invites.js'),
+    'expired-docs': () => import('/static/js/expired-docs.js')
+};
+
+let currentModule = null;
+
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    console.log('🧹 Cleaning up previous page...');
+
+    // Вызываем cleanup предыдущего модуля
+    if (currentModule && currentModule.cleanup) {
+        currentModule.cleanup();
+    }
+    currentModule = null;
+});
+
+document.body.addEventListener('htmx:afterSwap', async function(event) {
+    const target = event.detail.target;
+    const pageElement = target.querySelector('[data-page]');
+
+    if (!pageElement) {
+        console.warn('⚠️ No data-page attribute found');
+        return;
+    }
+
+    const pageName = pageElement.dataset.page;
+    console.log('📄 Loading page:', pageName);
+
+    if (pageModules[pageName]) {
+        try {
+            const module = await pageModules[pageName]();
+            console.log('✓ Module loaded:', pageName);
+
+            if (module.init) {
+                console.log('🚀 Initializing module:', pageName);
+                await module.init();
+                currentModule = module;
+            } else {
+                console.warn('⚠️ Module has no init function:', pageName);
+            }
+        } catch (error) {
+            console.error('❌ Error loading module:', pageName, error);
+        }
+    } else {
+        console.log('ℹ️ No module registered for page:', pageName);
+    }
+});

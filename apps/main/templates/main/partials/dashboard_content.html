@@ -1,0 +1,98 @@
+{% load static %}
+{% load i18n %}
+
+<!-- Employees Section -->
+<section class="employees">
+    <div class="employees__header">
+        <h1 class="employees__title">
+            {% trans "Співробітники" %}
+            <span class="employees__count">({{ total_count }})</span>
+        </h1>
+        <div class="employees__controls">
+            <!-- PDF Export -->
+            <a href="{% url 'main:export_pdf' %}?{{ params }}"
+               class="employees__pdf-btn"
+               id="pdfExportBtn"
+               title="{% trans 'Сформувати PDF' %}">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"/>
+                </svg>
+                <span class="pdf-btn-text">{% trans "PDF" %}</span>
+            </a>
+
+            <!-- Filter Dropdown Container -->
+            <div id="filter-dropdown" class="filter-dropdown">
+                <button class="employees__filter"
+                        id="filterToggleBtn"
+                        hx-get="{% url 'main:dashboard' %}?action=filter"
+                        hx-target="#filterDropdownMenu"
+                        hx-swap="innerHTML"
+                        aria-label="Filter">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"/>
+                    </svg>
+                </button>
+                <div class="filter-dropdown__menu" id="filterDropdownMenu"></div>
+            </div>
+
+            <!-- Add Employee Button -->
+            <button class="employees__add-btn"
+                    hx-get="{% url 'main:employee_form' %}?action=create"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+                {% trans "Додати робітника" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="table-loading" class="htmx-indicator" style="display: none;">
+        <div class="loading-spinner">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="18" stroke="#4A90E2" stroke-width="4" stroke-opacity="0.25"/>
+                <path d="M20 2a18 18 0 0 1 18 18" stroke="#4A90E2" stroke-width="4" stroke-linecap="round">
+                    <animateTransform attributeName="transform" type="rotate" from="0 20 20" to="360 20 20" dur="1s" repeatCount="indefinite"/>
+                </path>
+            </svg>
+            <p>{% trans "Завантаження..." %}</p>
+        </div>
+    </div>
+
+    <!-- Employees Table Container with HTMX -->
+    <div class="employees__table-wrapper">
+        <div id="employees-table-content"
+             hx-get="{% url 'main:dashboard' %}"
+             hx-trigger="employeeCreated from:body, employeeUpdated from:body, employeeDeleted from:body"
+             hx-target="this"
+             hx-swap="innerHTML"
+             hx-include="#hiddenFilters">
+            {% include 'main/partials/employees_table.html' %}
+        </div>
+    </div>
+</section>
+
+<script>
+    // Handle modal close
+    document.addEventListener('closeModal', function() {
+        const modalContainer = document.getElementById('modal-container');
+        if (modalContainer) {
+            modalContainer.innerHTML = '';
+        }
+    });
+
+    // Handle employee events
+    document.addEventListener('employeeCreated', function() {
+        showNotification('Співробітника успішно додано');
+    });
+
+    document.addEventListener('employeeUpdated', function() {
+        showNotification('Дані співробітника оновлено');
+    });
+
+    document.addEventListener('employeeDeleted', function() {
+        showNotification('Співробітника видалено');
+    });
+</script>

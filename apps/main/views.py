@@ -36,6 +36,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     form_class = EmployeeCompleteForm
     success_url = reverse_lazy("main:dashboard")
 
+    def dispatch(self, request, *args, **kwargs):
+        """Store kwargs for use in handle_htmx_request"""
+        self.kwargs = kwargs
+        self.request = request
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         """Handle GET requests for dashboard and HTMX partials"""
         # HTMX partial requests
@@ -48,31 +54,53 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def handle_htmx_request(self, request):
         """Route HTMX requests to appropriate handlers"""
         target = request.headers.get('HX-Target', '')
+        action = request.GET.get('action', '')
+
+        # Filter dropdown request
+        if action == 'filter' or 'filter-dropdown' in target:
+            return self.render_filter_dropdown(request)
 
         # Table refresh (filters, pagination, sorting)
-        if target == 'employees-table-body':
+        if (target == 'employees-table-content' or
+                target == 'employees-table-body' or
+                not target):
             return self.render_employees_table(request)
 
-        # Modal for create/edit employee
-        elif target == 'modal-container':
-            employee_id = request.GET.get('employee_id')
+        employee_id_from_url = self.kwargs.get('employee_id')
 
-            if employee_id:
-                # View or Edit mode
-                if request.path.endswith('/'):  # employee detail
-                    return self.render_employee_detail(request, employee_id)
-                else:  # employee form
-                    return self.render_employee_modal(request, mode='edit', employee_id=employee_id)
+        if employee_id_from_url:
+            return self.render_employee_detail(request, employee_id_from_url)
+
+        # Modal for create/edit employee
+        if target == 'modal-container':
+            employee_id_from_params = request.GET.get('employee_id')
+
+            if employee_id_from_params:
+                return self.render_employee_modal(request, mode='edit', employee_id=employee_id_from_params)
             else:
                 # Create mode
                 return self.render_employee_modal(request, mode='create')
 
-        # Filter dropdown
-        elif target == 'filter-dropdown':
-            return self.render_filter_dropdown(request)
+        if target == 'content-wrapper' or not target:
+            return self.render_dashboard_content(request)
 
-        # Default fallback
         return self.render_to_response(self.get_context_data())
+
+    def render_dashboard_content(self, request):
+        """Render ONLY dashboard content (partial) for SPA navigation"""
+        context = self.get_employees_context(request)
+
+        # Add forms and filter for the partial view
+        context.update({
+            "form": self.form_class(),
+            "contact_formset": ContactFormSet(prefix="contacts"),
+            "filter": EmployeeMultiFilter(
+                request.GET,
+                queryset=self.base_queryset
+            ),
+        })
+
+        return render(request, 'main/partials/dashboard_content.html', context)
 
     def post(self, request, *args, **kwargs):
         """Handle POST requests for employee create/update"""
@@ -177,7 +205,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def render_employees_table(self, request):
         """Render just the table body for HTMX updates"""
         context = self.get_employees_context(request)
-        return render(request, 'main/partials/employees_table_body.html', context)
+
+        context['filter'] = EmployeeMultiFilter(
+            request.GET,
+            queryset=self.base_queryset
+        )
+        context['employees'] = self.get_paginated_employees(request)
+
+        return render(request, 'main/partials/employees_table.html', context)
 
     def render_employee_modal(self, request, mode='create', employee_id=None):
         """Render employee form modal"""
@@ -449,9 +484,41 @@ def invites_for_register(request):
     )
 
 
+class TasksBoardView(LoginRequiredMixin, TemplateView):
+    """Tasks board view with SPA support"""
+    template_name = "main/tasks_board.html"
+
+    def get(self, request, *args, **kwargs):
+        """Handle GET requests"""
+        # HTMX request - return only content
+        if request.headers.get('HX-Request'):
+            target = request.headers.get('HX-Target', '')
+            if target == 'content-wrapper' or not target:
+                return self.render_tasks_content(request)
+
+        # Regular full page request
+        return self.render_to_response(self.get_context_data())
+
+    def render_tasks_content(self, request):
+        """Render ONLY tasks content (partial) for SPA navigation"""
+        context = self.get_context_data()
+        return render(request, 'main/partials/tasks_content.html', context)
+
+    def get_context_data(self, **kwargs):
+        """Get context data"""
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+
+        return context
+
 @login_required
 def tasks_board(request):
     """Сторінка з дошкою завдань"""
+    import logging
+    logger = logging.getLogger(__name__)
+    if request.headers.get('HX-Request'):
+        target = request.headers.get('HX-Target', '')
+        logger.info(target)
     return render(request, 'main/tasks_board.html', {
         'user': request.user,
     })

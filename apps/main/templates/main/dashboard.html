@@ -6,131 +6,97 @@
 
 {% block content %}
 <!-- Employees Section -->
-<section class="employees">
-    <div class="employees__header">
-        <h1 class="employees__title">
-            {% trans "Співробітники" %}
-            <span class="employees__count">({{ total_count }})</span>
-        </h1>
-        <div class="employees__controls">
-            <!-- PDF Export -->
-            <a href="{% url 'main:export_pdf' %}?{{ params }}"
-               class="employees__pdf-btn"
-               id="pdfExportBtn"
-               title="{% trans 'Сформувати PDF' %}">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"/>
-                </svg>
-                <span class="pdf-btn-text">{% trans "PDF" %}</span>
-            </a>
+{% include 'main/partials/dashboard_content.html' %}
 
-            <!-- Filter Dropdown Button -->
-            <button class="employees__filter"
-                    hx-get="{% url 'main:dashboard' %}?action=filter"
-                    hx-target="#filter-dropdown"
-                    hx-swap="innerHTML"
-                    aria-label="Filter">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"/>
-                </svg>
-            </button>
+<!-- Context Menu -->
+<div class="context-menu" id="contextMenu">
+    <button class="context-menu__item"
+            onclick="viewEmployeeContext(currentEmployeeId)">
+        <svg class="context-menu__icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 3C4.5 3 1.5 5.5 0 8c1.5 2.5 4.5 5 8 5s6.5-2.5 8-5c-1.5-2.5-4.5-5-8-5zm0 8a3 3 0 110-6 3 3 0 010 6z"/>
+            <circle cx="8" cy="8" r="1.5"/>
+        </svg>
+        <span class="context-menu__text">{% trans "Профіль" %}</span>
+    </button>
+    <button class="context-menu__item"
+            onclick="editEmployeeContext(currentEmployeeId)">
+        <svg class="context-menu__icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M12.146 1.146a.5.5 0 01.708 0l2 2a.5.5 0 010 .708l-9 9a.5.5 0 01-.168.11l-4 1.5a.5.5 0 01-.65-.65l1.5-4a.5.5 0 01.11-.168l9-9z"/>
+        </svg>
+        <span class="context-menu__text">{% trans "Оновити" %}</span>
+    </button>
+    <button class="context-menu__item context-menu__item--danger"
+            onclick="deleteEmployeeContext(currentEmployeeId)">
+        <svg class="context-menu__icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z"/>
+        </svg>
+        <span class="context-menu__text">{% trans "Видалити" %}</span>
+    </button>
+</div>
 
-            <!-- Add Employee Button -->
-            <button class="employees__add-btn"
-                    hx-get="{% url 'main:employee_form' %}?action=create"
-                    hx-target="#modal-container"
-                    hx-swap="innerHTML">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
-                </svg>
-                {% trans "Додати робітника" %}
-            </button>
-        </div>
-    </div>
-
-    <!-- Pagination Top -->
-    {% include 'main/partials/pagination.html' with position='top' %}
-
-    <!-- Employees Table -->
-    <div class="employees__table-wrapper">
-        <div class="employees-table" id="employeesTable">
-            <!-- Header -->
-            <div class="employees-table__head">
-                <div class="employees-table__row employees-table__row--header">
-                    {% include 'main/partials/table_header.html' %}
-                </div>
-            </div>
-
-            <!-- Body with HTMX -->
-            <div class="employees-table__body"
-                 id="employees-table-body"
-                 hx-get="{% url 'main:dashboard' %}"
-                 hx-trigger="employeeCreated from:body, employeeUpdated from:body, employeeDeleted from:body"
-                 hx-target="this"
-                 hx-swap="outerHTML"
-                 hx-include="[name='ordering'], [name='status'], [name='q'], [name='page']">
-                {% include 'main/partials/employees_table_body.html' %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Pagination Bottom -->
-    {% include 'main/partials/pagination.html' with position='bottom' %}
-</section>
-
-<!-- Modal Container for HTMX -->
-<div id="modal-container"></div>
-
-<!-- Filter Dropdown Container -->
-<div id="filter-dropdown"></div>
-
-<!-- HTMX Scripts -->
 <script>
-    // Handle modal close
-    document.addEventListener('closeModal', function() {
-        const modalContainer = document.getElementById('modal-container');
-        if (modalContainer) {
-            modalContainer.innerHTML = '';
-        }
-    });
-
-    // Handle employee created/updated
-    document.addEventListener('employeeCreated', function() {
-        showNotification('Співробітника успішно додано');
-    });
-
-    document.addEventListener('employeeUpdated', function() {
-        showNotification('Дані співробітника оновлено');
-    });
-
-    document.addEventListener('employeeDeleted', function() {
-        showNotification('Співробітника видалено');
-    });
-
-    // Notification function
-    function showNotification(message) {
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #28A745;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 3000;
-            animation: slideInRight 0.3s ease;
-        `;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
-        }, 3000);
-    }
+// Translations for JavaScript - ВСЕ переводы
+window.EMPLOYEE_TRANSLATIONS = {
+    'add_employee': '{% filter escapejs %}{% trans "Додати працівника" %}{% endfilter %}',
+    'update_employee': '{% filter escapejs %}{% trans "Оновити дані працівника" %}{% endfilter %}',
+    'save': '{% filter escapejs %}{% trans "Зберегти" %}{% endfilter %}',
+    'update': '{% filter escapejs %}{% trans "Оновити" %}{% endfilter %}',
+    'cancel': '{% filter escapejs %}{% trans "Скасувати" %}{% endfilter %}',
+    'edit': '{% filter escapejs %}{% trans "Редагувати" %}{% endfilter %}',
+    'delete': '{% filter escapejs %}{% trans "Видалити" %}{% endfilter %}',
+    'delete_employee': '{% filter escapejs %}{% trans "Ви впевнені, що хочете видалити цього співробітника?" %}{% endfilter %}',
+    'auth_error': '{% filter escapejs %}{% trans "Помилка авторизації. Будь ласка, увійдіть знову" %}{% endfilter %}',
+    'employee_not_found': '{% filter escapejs %}{% trans "Співробітника не знайдено" %}{% endfilter %}',
+    'error_loading_employee': '{% filter escapejs %}{% trans "Помилка завантаження даних співробітника" %}{% endfilter %}',
+    'auth_error_short': '{% filter escapejs %}{% trans "Помилка авторизації" %}{% endfilter %}',
+    'error_deleting_employee': '{% filter escapejs %}{% trans "Помилка видалення співробітника" %}{% endfilter %}',
+    'employee_deleted': '{% filter escapejs %}{% trans "Співробітника успішно видалено" %}{% endfilter %}',
+    'not_specified': '{% filter escapejs %}{% trans "Не вказано" %}{% endfilter %}',
+    'yes': '{% filter escapejs %}{% trans "Так" %}{% endfilter %}',
+    'no': '{% filter escapejs %}{% trans "Ні" %}{% endfilter %}',
+    'employed': '{% filter escapejs %}{% trans "Працевлаштований" %}{% endfilter %}',
+    'fired': '{% filter escapejs %}{% trans "Звільнений" %}{% endfilter %}',
+    'employment_contract': '{% filter escapejs %}{% trans "Трудовий договір" %}{% endfilter %}',
+    'position_change': '{% filter escapejs %}{% trans "Зміна посади" %}{% endfilter %}',
+    'start_date': '{% filter escapejs %}{% trans "Дата початку" %}{% endfilter %}',
+    'end_date': '{% filter escapejs %}{% trans "Дата закінчення" %}{% endfilter %}',
+    'no_employment_periods': '{% filter escapejs %}{% trans "Періоди зайнятості відсутні" %}{% endfilter %}',
+    'document': '{% filter escapejs %}{% trans "Документ" %}{% endfilter %}',
+    'expired': '{% filter escapejs %}{% trans "Прострочено" %}{% endfilter %}',
+    'valid': '{% filter escapejs %}{% trans "Дійсний" %}{% endfilter %}',
+    'document_type': '{% filter escapejs %}{% trans "Тип документа" %}{% endfilter %}',
+    'no_documents': '{% filter escapejs %}{% trans "Документи відсутні" %}{% endfilter %}',
+    'work_permit': '{% filter escapejs %}{% trans "Дозвіл на роботу" %}{% endfilter %}',
+    'permit_type': '{% filter escapejs %}{% trans "Тип дозволу" %}{% endfilter %}',
+    'no_work_permits': '{% filter escapejs %}{% trans "Дозволи на роботу відсутні" %}{% endfilter %}',
+    'application_type': '{% filter escapejs %}{% trans "Тип заявки" %}{% endfilter %}',
+    'submission_date': '{% filter escapejs %}{% trans "Дата подання" %}{% endfilter %}',
+    'no_card_submissions': '{% filter escapejs %}{% trans "Подання карток відсутні" %}{% endfilter %}',
+    'contract_type': '{% filter escapejs %}{% trans "Тип контракту" %}{% endfilter %}',
+    'no_contracts': '{% filter escapejs %}{% trans "Контракти відсутні" %}{% endfilter %}',
+    'sanitary_book': '{% filter escapejs %}{% trans "Санітарна книжка" %}{% endfilter %}',
+    'status': '{% filter escapejs %}{% trans "Статус" %}{% endfilter %}',
+    'no_sanitary_books': '{% filter escapejs %}{% trans "Санітарні книжки відсутні" %}{% endfilter %}',
+    'contact_type': '{% filter escapejs %}{% trans "Тип контакту" %}{% endfilter %}',
+    'value': '{% filter escapejs %}{% trans "Значення" %}{% endfilter %}',
+    'no_contacts': '{% filter escapejs %}{% trans "Контакти відсутні" %}{% endfilter %}',
+    'personal_information': '{% filter escapejs %}{% trans "Особиста інформація" %}{% endfilter %}',
+    'first_name': '{% filter escapejs %}{% trans "Імʼя" %}{% endfilter %}',
+    'last_name': '{% filter escapejs %}{% trans "Прізвище" %}{% endfilter %}',
+    'age': '{% filter escapejs %}{% trans "Вік" %}{% endfilter %}',
+    'years': '{% filter escapejs %}{% trans "років" %}{% endfilter %}',
+    'workplace': '{% filter escapejs %}{% trans "Місце роботи" %}{% endfilter %}',
+    'workplace_not_specified': '{% filter escapejs %}{% trans "Місце роботи не вказано" %}{% endfilter %}',
+    'student': '{% filter escapejs %}{% trans "Студент" %}{% endfilter %}',
+    'name_not_specified': '{% filter escapejs %}{% trans "Імʼя не вказано" %}{% endfilter %}',
+    'employment_periods': '{% filter escapejs %}{% trans "Періоди зайнятості" %}{% endfilter %}',
+    'documents': '{% filter escapejs %}{% trans "Документи" %}{% endfilter %}',
+    'work_permits': '{% filter escapejs %}{% trans "Дозволи на роботу" %}{% endfilter %}',
+    'card_submissions': '{% filter escapejs %}{% trans "Подання карток" %}{% endfilter %}',
+    'contracts': '{% filter escapejs %}{% trans "Контракти" %}{% endfilter %}',
+    'sanitary_books': '{% filter escapejs %}{% trans "Санітарні книжки" %}{% endfilter %}',
+    'contacts': '{% filter escapejs %}{% trans "Контакти" %}{% endfilter %}',
+    'additional_information': '{% filter escapejs %}{% trans "Додаткова інформація" %}{% endfilter %}'
+};
 </script>
 {% endblock %}

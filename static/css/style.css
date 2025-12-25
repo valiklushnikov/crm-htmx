@@ -609,7 +609,7 @@ body::-webkit-scrollbar {
 }
 
 /* Employees Table */
-.employees__table-wrapper {
+.employees-table-container {
     /*background-color: #bbddff8a;*/
     border-radius: 12px;
     box-shadow: var(--shadow-sm);
@@ -1974,7 +1974,7 @@ input[type="password"]:focus {
 
 /* table */
 /* Wrapper */
-.employees__table-wrapper {
+.employees-table-container {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -1984,27 +1984,27 @@ input[type="password"]:focus {
 }
 
 /* Стилизация скроллбара для webkit браузеров */
-.employees__table-wrapper::-webkit-scrollbar {
+.employees-table-container::-webkit-scrollbar {
     height: 8px;
 }
 
-.employees__table-wrapper::-webkit-scrollbar-track {
+.employees-table-container::-webkit-scrollbar-track {
     background: #f3f4f6;
     border-radius: 4px;
 }
 
-.employees__table-wrapper::-webkit-scrollbar-thumb {
+.employees-table-container::-webkit-scrollbar-thumb {
     background: #d1d5db;
     border-radius: 4px;
     transition: background 0.2s;
 }
 
-.employees__table-wrapper::-webkit-scrollbar-thumb:hover {
+.employees-table-container::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
 }
 
 /* Градиент-индикатор для скролла справа */
-.employees__table-wrapper::after {
+.employees-table-container::after {
     content: '';
     position: absolute;
     top: 0;
@@ -2018,7 +2018,7 @@ input[type="password"]:focus {
     z-index: 1;
 }
 
-.employees__table-wrapper.has-scroll::after {
+.employees-table-container.has-scroll::after {
     opacity: 1;
 }
 
@@ -2231,7 +2231,7 @@ input[type="password"]:focus {
         min-width: auto;
     }
     
-    .employees__table-wrapper::after {
+    .employees-table-container::after {
         display: none;
     }
 }
@@ -2373,7 +2373,7 @@ input[type="password"]:focus {
 
 /* Responsive - планшети */
 @media (max-width: 992px) {
-    .employees__table-wrapper {
+    .employees-table-container {
         overflow-x: scroll;
     }
 }
@@ -4223,7 +4223,7 @@ rt Buttons */
 }
 
 /* Table Loading State */
-.employees__table-wrapper.htmx-request {
+.employees-table-container.htmx-request {
     opacity: 0.6;
     pointer-events: none;
 }
@@ -4311,9 +4311,9 @@ rt Buttons */
 }
 
 /* Prevent layout shift during loading */
-.employees-table {
-    min-height: 400px;
-}
+/*.employees-table {*/
+/*    min-height: 400px;*/
+/*}*/
 
 /* Error state */
 .htmx-error {

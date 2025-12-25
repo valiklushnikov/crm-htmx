@@ -1,11 +1,10 @@
 /**
  * app-htmx.js
  * Minimal JavaScript for HTMX-powered dashboard
- * Replaces the old app.js with much simpler logic
  */
 
 // ============================================
-// Context Menu (still needed for right-click)
+// Context Menu
 // ============================================
 let currentEmployeeId = null;
 
@@ -20,7 +19,6 @@ function showContextMenu(event, employeeId) {
     contextMenu.style.top = event.clientY + 'px';
     contextMenu.classList.add('context-menu--active');
 
-    // Adjust position if menu goes off screen
     setTimeout(() => {
         const rect = contextMenu.getBoundingClientRect();
         if (rect.right > window.innerWidth) {
@@ -46,13 +44,14 @@ function editEmployeeContext(employeeId) {
         swap: 'innerHTML'
     });
     hideContextMenu();
+
 }
 
 function deleteEmployeeContext(employeeId) {
-    if (confirm(window.EMPLOYEE_TRANSLATIONS.delete_employee)) {
+    if (confirm(window.EMPLOYEE_TRANSLATIONS?.delete_employee || 'Видалити співробітника?')) {
         htmx.ajax('DELETE', `/api/auth/profile/${employeeId}/delete/`, {
-            target: '#employees-table-body',
-            swap: 'outerHTML'
+            target: '#employees-table-container',
+            swap: 'innerHTML'
         }).then(() => {
             htmx.trigger(document.body, 'employeeDeleted');
         });
@@ -62,10 +61,10 @@ function deleteEmployeeContext(employeeId) {
 
 function hideContextMenu() {
     const contextMenu = document.getElementById('contextMenu');
-    contextMenu.classList.remove('context-menu--active');
+    contextMenu?.classList.remove('context-menu--active');
+    document.body.style.overflow = 'hidden';
 }
 
-// Close context menu on click outside
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.context-menu') && !e.target.closest('.employees-table__menu-btn')) {
         hideContextMenu();
@@ -73,14 +72,17 @@ document.addEventListener('click', (e) => {
 });
 
 // ============================================
-// Dynamic Contact Forms (formset management)
+// Dynamic Contact Forms
 // ============================================
 document.addEventListener("DOMContentLoaded", () => {
-    // This will be called after HTMX loads the modal
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         if (evt.detail.target.id === 'modal-container') {
             initializeContactFormset();
             initializeFlatpickr();
+        }
+
+        if (evt.detail.target.id === 'filterDropdownMenu') {
+            initializeFilterDropdown();
         }
     });
 });
@@ -91,7 +93,6 @@ function initializeContactFormset() {
     const template = document.querySelector("#contact-template .contacts__item");
 
     if (addBtn && list && template) {
-        // Remove old listener if exists
         const newAddBtn = addBtn.cloneNode(true);
         addBtn.parentNode.replaceChild(newAddBtn, addBtn);
 
@@ -111,7 +112,6 @@ function initializeContactFormset() {
                 if (el.id) {
                     el.id = el.id.replace(/__prefix__/g, current);
                 }
-
                 if (el.type !== "hidden") {
                     el.value = "";
                 }
@@ -124,7 +124,7 @@ function initializeContactFormset() {
 }
 
 // ============================================
-// Flatpickr initialization
+// Flatpickr
 // ============================================
 function initializeFlatpickr() {
     const dateInputs = document.querySelectorAll('input[type="date"]');
@@ -139,47 +139,37 @@ function initializeFlatpickr() {
 }
 
 // ============================================
-// Filter Dropdown Toggle
+// Filter Dropdown
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    const filterToggleBtn = document.getElementById('filterToggleBtn');
+function initializeFilterDropdown() {
     const filterDropdownMenu = document.getElementById('filterDropdownMenu');
-    const filterCloseBtn = document.getElementById('filterCloseBtn');
-    const filterClearBtn = document.getElementById('filterClearBtn');
+    if (!filterDropdownMenu) return;
 
-    if (filterToggleBtn && filterDropdownMenu) {
-        filterToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            filterDropdownMenu.classList.toggle('filter-dropdown__menu--active');
-        });
-    }
+    // Показываем меню
+    filterDropdownMenu.classList.add('filter-dropdown__menu--active');
 
-    if (filterCloseBtn) {
-        filterCloseBtn.addEventListener('click', () => {
-            filterDropdownMenu.classList.remove('filter-dropdown__menu--active');
-        });
-    }
-
-    if (filterClearBtn) {
-        filterClearBtn.addEventListener('click', () => {
-            const checkboxes = document.querySelectorAll('#filterForm input[type="checkbox"]');
-            checkboxes.forEach(checkbox => checkbox.checked = false);
-            filterToggleBtn.classList.remove('employees__filter--active');
-        });
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
+    // Закрытие при клике вне
+    const closeOnOutsideClick = (e) => {
+        const filterToggleBtn = document.getElementById('filterToggleBtn');
         if (filterDropdownMenu &&
             !filterDropdownMenu.contains(e.target) &&
-            !filterToggleBtn.contains(e.target)) {
+            !filterToggleBtn?.contains(e.target)) {
             filterDropdownMenu.classList.remove('filter-dropdown__menu--active');
+            document.removeEventListener('click', closeOnOutsideClick);
         }
-    });
+    };
 
-    // Check if filters are active on page load
+    // Добавляем обработчик с небольшой задержкой
+    setTimeout(() => {
+        document.addEventListener('click', closeOnOutsideClick);
+    }, 100);
+}
+
+// Check if filters are active on page load
+document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const statusParams = urlParams.getAll('status');
+    const filterToggleBtn = document.getElementById('filterToggleBtn');
 
     if (statusParams.length > 0 && filterToggleBtn) {
         filterToggleBtn.classList.add('employees__filter--active');
@@ -187,22 +177,33 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// Clear Search
+// Search
 // ============================================
-function clearSearch() {
-    const input = document.querySelector('[name="q"]');
+function clearSearchInput() {
+    const input = document.getElementById('searchInput');
+    const clearBtn = document.querySelector('.header__search-clear');
+
+    searchInput.addEventListener('input', () => {
+        if (searchInput.value.trim() !== '') {
+            clearBtn.classList.remove('hide');
+        } else {
+            clearBtn.classList.add('hide');
+        }
+    });
     if (input) {
         input.value = '';
         // Trigger HTMX request
-        const form = input.closest('form');
-        if (form) {
-            htmx.trigger(form, 'submit');
-        }
+        htmx.trigger(input, 'keyup');
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.delete('q');
     }
 }
 
+// Make globally available
+window.clearSearchInput = clearSearchInput;
+
 // ============================================
-// PDF Export Loading Indicator
+// PDF Export
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
     const pdfBtn = document.getElementById('pdfExportBtn');
@@ -229,11 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// Notification from session storage
+// Notifications
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
     const notification = sessionStorage.getItem('notification');
-
     if (notification) {
         const {message, type} = JSON.parse(notification);
         showNotification(message, type || 'success');
@@ -241,11 +241,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// function showNotification(message, type = 'success') {
+//     const colors = {
+//         success: '#28A745',
+//         error: '#DC3545',
+//         warning: '#FFC107',
+//         info: '#17A2B8'
+//     };
+//
+//     const notification = document.createElement('div');
+//     notification.style.cssText = `
+//         position: fixed;
+//         top: 20px;
+//         right: 20px;
+//         background-color: ${colors[type] || colors.success};
+//         color: white;
+//         padding: 16px 24px;
+//         border-radius: 8px;
+//         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+//         z-index: 3000;
+//         animation: slideInRight 0.3s ease;
+//     `;
+//     notification.textContent = message;
+//     document.body.appendChild(notification);
+//
+//     setTimeout(() => {
+//         notification.style.animation = 'slideOutRight 0.3s ease';
+//         setTimeout(() => {
+//             if (document.body.contains(notification)) {
+//                 document.body.removeChild(notification);
+//             }
+//         }, 300);
+//     }, 3000);
+// }
+//
+// window.showNotification = showNotification;
+
 // ============================================
 // HTMX Event Handlers
 // ============================================
 document.body.addEventListener('htmx:beforeRequest', function(evt) {
-    // Add loading indicator if needed
     const target = evt.detail.target;
     if (target) {
         target.classList.add('htmx-loading');
@@ -253,7 +288,6 @@ document.body.addEventListener('htmx:beforeRequest', function(evt) {
 });
 
 document.body.addEventListener('htmx:afterRequest', function(evt) {
-    // Remove loading indicator
     const target = evt.detail.target;
     if (target) {
         target.classList.remove('htmx-loading');
@@ -275,47 +309,7 @@ document.body.addEventListener('htmx:responseError', function(evt) {
 });
 
 // ============================================
-// Global helper: showNotification
-// ============================================
-function showNotification(message, type = 'success') {
-    const colors = {
-        success: '#28A745',
-        error: '#DC3545',
-        warning: '#FFC107',
-        info: '#17A2B8'
-    };
-
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background-color: ${colors[type] || colors.success};
-        color: white;
-        padding: 16px 24px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        z-index: 3000;
-        animation: slideInRight 0.3s ease;
-    `;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            if (document.body.contains(notification)) {
-                document.body.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
-
-// Make globally available
-window.showNotification = showNotification;
-
-// ============================================
-// Animation styles (if not in CSS)
+// Animation styles
 // ============================================
 if (!document.getElementById('notification-animations')) {
     const style = document.createElement('style');
@@ -350,3 +344,86 @@ if (!document.getElementById('notification-animations')) {
     `;
     document.head.appendChild(style);
 }
+
+// Filter functionality with HTMX
+document.body.addEventListener('htmx:afterSwap', () => {
+    const filterToggleBtn = document.getElementById('filterToggleBtn');
+    const filterDropdownMenu = document.getElementById('filterDropdownMenu');
+    const filterCloseBtn = document.getElementById('filterCloseBtn');
+    const filterForm = document.getElementById('filterForm');
+    const filterClearBtn = document.getElementById('filterClearBtn');
+    const filterApplyBtn = document.getElementById('filterApplyBtn');
+
+    if (!filterToggleBtn || !filterDropdownMenu) return;
+
+    filterToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filterDropdownMenu.classList.toggle('filter-dropdown__menu--active');
+    });
+
+    if (filterCloseBtn) {
+        filterCloseBtn.addEventListener('click', () => {
+            filterDropdownMenu.classList.remove('filter-dropdown__menu--active');
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!filterDropdownMenu.contains(e.target) && !filterToggleBtn.contains(e.target)) {
+            filterDropdownMenu.classList.remove('filter-dropdown__menu--active');
+        }
+    });
+
+    if (filterClearBtn) {
+        filterClearBtn.addEventListener('click', () => {
+            const checkboxes = filterForm.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => checkbox.checked = false);
+            filterToggleBtn.classList.remove('employees__filter--active');
+
+            // Оновлюємо таблицю без фільтрів
+            const url = new URL(window.location.href);
+            url.searchParams.delete('status');
+        });
+    }
+
+    if (filterApplyBtn) {
+        filterApplyBtn.addEventListener('click', () => {
+            const checkboxes = filterForm.querySelectorAll('input[type="checkbox"]:checked');
+            const selectedStatuses = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedStatuses.length > 0) {
+                filterToggleBtn.classList.add('employees__filter--active');
+            } else {
+                filterToggleBtn.classList.remove('employees__filter--active');
+            }
+
+            const url = new URL(window.location.href);
+            url.searchParams.delete('status');
+            selectedStatuses.forEach(status => {
+                url.searchParams.append('status', status);
+            });
+
+            htmx.ajax('GET', url.toString(), {
+                target: '#employees-table-content',
+                swap: 'innerHTML',
+                indicator: '#table-loading'
+            });
+
+            filterDropdownMenu.classList.remove('filter-dropdown__menu--active');
+        });
+    }
+
+    // Check if filters are active on page load
+    const urlParams = new URLSearchParams(window.location.search);
+    const statusParams = urlParams.getAll('status');
+
+    if (statusParams.length > 0) {
+        filterToggleBtn.classList.add('employees__filter--active');
+
+        const checkboxes = filterForm.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (statusParams.includes(checkbox.value)) {
+                checkbox.checked = true;
+            }
+        });
+    }
+});

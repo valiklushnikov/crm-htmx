@@ -7,22 +7,22 @@
             {% if ordering_info.last_name.active and ordering_info.last_name.direction == 'asc' %}
                 <a href="?{{ params_without_ordering }}&ordering=-last_name"
                    hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-last_name"
-                   hx-target="#employees-table-body"
-                   hx-swap="outerHTML"
+                   hx-target="#employees-table-content"
+                   hx-swap="innerHTML"
                    class="sort-btn sort-btn--active">↑</a>
             {% else %}
                 <a href="?{{ params_without_ordering }}&ordering=last_name"
                    hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=last_name"
-                   hx-target="#employees-table-body"
-                   hx-swap="outerHTML"
+                   hx-target="#employees-table-content"
+                   hx-swap="innerHTML"
                    class="sort-btn">↑</a>
             {% endif %}
 
             {% if ordering_info.last_name.active %}
                 <a href="?{{ params_without_ordering }}"
                    hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}"
-                   hx-target="#employees-table-body"
-                   hx-swap="outerHTML"
+                   hx-target="#employees-table-content"
+                   hx-swap="innerHTML"
                    class="sort-btn sort-btn--clear">✕</a>
             {% else %}
                 <span class="sort-btn sort-btn--disabled">✕</span>
@@ -31,14 +31,14 @@
             {% if ordering_info.last_name.active and ordering_info.last_name.direction == 'desc' %}
                 <a href="?{{ params_without_ordering }}&ordering=last_name"
                    hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=last_name"
-                   hx-target="#employees-table-body"
-                   hx-swap="outerHTML"
+                   hx-target="#employees-table-content"
+                   hx-swap="innerHTML"
                    class="sort-btn sort-btn--active">↓</a>
             {% else %}
                 <a href="?{{ params_without_ordering }}&ordering=-last_name"
                    hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-last_name"
-                   hx-target="#employees-table-body"
-                   hx-swap="outerHTML"
+                   hx-target="#employees-table-content"
+                   hx-swap="innerHTML"
                    class="sort-btn">↓</a>
             {% endif %}
         </div>
@@ -51,22 +51,22 @@
         {% if ordering_info.start_date.active and ordering_info.start_date.direction == 'asc' %}
             <a href="?{{ params_without_ordering }}&ordering=-start_date"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-start_date"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn sort-btn--active">↑</a>
         {% else %}
             <a href="?{{ params_without_ordering }}&ordering=start_date"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=start_date"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn">↑</a>
         {% endif %}
 
         {% if ordering_info.start_date.active %}
             <a href="?{{ params_without_ordering }}"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn sort-btn--clear">✕</a>
         {% else %}
                 <span class="sort-btn sort-btn--disabled">✕</span>
@@ -75,14 +75,14 @@
         {% if ordering_info.start_date.active and ordering_info.start_date.direction == 'desc' %}
             <a href="?{{ params_without_ordering }}&ordering=start_date"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=start_date"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn sort-btn--active">↓</a>
         {% else %}
             <a href="?{{ params_without_ordering }}&ordering=-start_date"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-start_date"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn">↓</a>
         {% endif %}
     </div>
@@ -94,22 +94,22 @@
         {% if ordering_info.end_date.active and ordering_info.end_date.direction == 'asc' %}
             <a href="?{{ params_without_ordering }}&ordering=-end_date"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-end_date"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn sort-btn--active">↑</a>
         {% else %}
             <a href="?{{ params_without_ordering }}&ordering=end_date"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=end_date"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn">↑</a>
         {% endif %}
 
         {% if ordering_info.end_date.active %}
             <a href="?{{ params_without_ordering }}"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn sort-btn--clear">✕</a>
         {% else %}
                 <span class="sort-btn sort-btn--disabled">✕</span>
@@ -118,18 +118,16 @@
         {% if ordering_info.end_date.active and ordering_info.end_date.direction == 'desc' %}
             <a href="?{{ params_without_ordering }}&ordering=end_date"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=end_date"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn sort-btn--active">↓</a>
         {% else %}
             <a href="?{{ params_without_ordering }}&ordering=-end_date"
                hx-get="{% url 'main:dashboard' %}?{{ params_without_ordering }}&ordering=-end_date"
-               hx-target="#employees-table-body"
-               hx-swap="outerHTML"
+               hx-target="#employees-table-content"
+               hx-swap="innerHTML"
                class="sort-btn">↓</a>
         {% endif %}
-
-
     </div>
 </div>
 
